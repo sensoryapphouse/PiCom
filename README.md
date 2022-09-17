@@ -1,2 +1,2 @@
 # PiCom
- Picture Communicator
+ See Picom.docx

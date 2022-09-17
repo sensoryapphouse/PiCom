@@ -1,0 +1,101 @@
+html,
+body {
+    margin: 0;
+    padding: 2;
+}
+
+body {
+    position: absolute;
+    top: 0vh;
+    /* This centers our sketch horizontally. */
+    justify-content: center;
+    z-index 500;
+    /* This centers our sketch vertically. */
+    /*    align-items: flex-end;*/
+    /* flex-start; flex-end; */
+}
+
+
+splash {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0vh;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    background: url(images/splash.jpg);
+    background-size: 100vw 100vh;
+    background-color: black;
+    opacity: 1.0;
+    z-index: 10001;
+    -webkit-app-region: no-drag;
+}
+
+/*
+hamMenu {
+    position: absolute;
+    top: 1vh;
+    left: 1vh;
+    width: 7vh;
+    height: 7vh;
+    border-radius: 5vw;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    background: url(images/menu.png);
+    background-size: 7vh 7vh;
+    background-color: transparent;
+    opacity: 1.0;
+    z-index: 10001;
+    -webkit-app-region: no-drag;
+}
+*/
+
+#layoutViewport {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    visibility: hidden;
+}
+
+#picomBar {
+    position: fixed;
+    left: 0px;
+    right: 0px;
+    top: 90vh;
+    bottom: 0vh;
+    background-color: black;
+    background-size: 100vw 10vh;
+    transform-origin: left bottom;
+    transform: translate(0px, 0px) scale(1);
+    z-index: 1501;
+}
+
+#gui_container {
+    position: absolute;
+    top: 0vh;
+    right: 2vw;
+    z-index: 10000;
+    opacity: .9;
+}
+
+#gui {}
+
+buttonPanel {
+    position: absolute;
+    top: 2vw;
+    left: 2vw;
+    width: 35vw;
+    height: 80vh;
+    border-radius: 0vh;
+    border: outset;
+    outline: none;
+    background: url(images/panel.png);
+    background-size: 100% 100%;
+    opacity: .95;
+    z-index: 16000;
+    -webkit-app-region: no-drag;
+}
