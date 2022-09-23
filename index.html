@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <head>
     <title>PiCom</title>
@@ -9,28 +10,50 @@
     <script src="libraries/tinycolor-min.js"></script>
     <script src="libraries/dat.gui.min.js" type="text/javascript"></script>
     <script src="libraries/jszip.min.js" type="text/javascript"></script>
+    <!-- JEELIZFACEEXPRESSIONS LIB: DETECT FACIAL EXPRESSIONS: -->
+    <script src="libraries/jeelizFaceExpressions.js"></script>
     <script src="gamepads.js"></script>
+    <script src="face.js"></script>
     <script src="idb-keyval-iife.js"></script>
 
     <link rel=" stylesheet" type="text/css" href="style.css">
     <link rel="stylesheet" type="text/css" href="dat-gui-font.css">
+    <link rel="stylesheet" type="text/css" href="dat-gui-picom-theme.css">
+
     <meta charset="utf-8">
 </head>
 <div id="layoutViewport"></div>
 <div id="gui_container"></div>
+<style type='text/css'>
+    #jeelizFaceExpressionsCanvas {
+        z-index: 20;
+        position: fixed;
+        bottom: 0px;
+        left: 0px;
+        max-height: 12vh;
+        transform: rotateY(180deg);
+        z-index: 10001;
+        opacity: .5;
+    }
+
+</style>
+
 
 <body id="body">
-    <buttonPanel class="img" hidden=true></buttonPanel>
+    <buttonPanel id="panel" class="img" hidden=true></buttonPanel>
     <splash class=" btn" enabled></splash>
-    <!--    <hamMenu class=" btn" hidden=true> </hamMenu>-->
+    <editButton class=" btn" hidden enabled>Edit</editButton>
+    <settings class=" btn" hidden enabled></settings>
     <toolbar id="picomBar"></toolbar>
-    <script src="settings.js">
+    <canvas hidden=true id='jeelizFaceExpressionsCanvas'></canvas>
 
-    </script>
+
+    <script src="settings.js"> </script>
     <script src="toolbar.js"></script>
     <script src="gpad.js"></script>
     <script src="input.js"></script>
     <script src="panel.js"></script>
+    <script src="languages.js"></script>
     <script src="sketch.js"></script>
     <input type="file" id="file-input" hidden accept=".obf,.obz">
     <input type="file" id="image-input" hidden accept="image/*">

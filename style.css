@@ -77,17 +77,25 @@ hamMenu {
 #gui_container {
     position: absolute;
     top: 0vh;
-    right: 2vw;
-    z-index: 10000;
-    opacity: .9;
+    left: 0vw;
+    z-index: 16001;
+    transform: scale(1.1);
 }
 
-#gui {}
+#gui {
+    position: absolute;
+    top: 4vh;
+    left: .9vw;
+    height: 80vh;
+    opacity: .95;
+    border: outset;
+    border: none;
+}
 
 buttonPanel {
     position: absolute;
-    top: 2vw;
-    left: 2vw;
+    top: 4.5vh;
+    left: 1vw;
     width: 35vw;
     height: 80vh;
     border-radius: 0vh;
@@ -97,5 +105,43 @@ buttonPanel {
     background-size: 100% 100%;
     opacity: .95;
     z-index: 16000;
+    -webkit-app-region: no-drag;
+}
+
+editButton {
+    position: absolute;
+    top: 0vh;
+    left: 5.3vw;
+    width: 8vw;
+    height: 3vh;
+    border-radius: 1vh;
+    border: outset;
+    color: white;
+    cursor: pointer;
+    background-color: rgb(107, 106, 150);
+    padding: 1vh;
+    line-height: 3vh;
+    text-align: center;
+    font-size: 3vh;
+    opacity: 0.95;
+    z-index: 15000;
+    -webkit-app-region: no-drag;
+}
+
+settings {
+    position: absolute;
+    top: 0vh;
+    left: 1.3vw;
+    width: 5vw;
+    height: 5vh;
+    border-radius: 1vh;
+    border: outset;
+    color: white;
+    cursor: pointer;
+    background-color: rgb(107, 106, 150);
+    background-image: url(images/settings.png);
+    background-size: 5vw 5vh;
+    opacity: 0.95;
+    z-index: 15000;
     -webkit-app-region: no-drag;
 }

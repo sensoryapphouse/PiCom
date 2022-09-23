@@ -24,6 +24,8 @@ var showGUI = 0; // count right clicks for showing gui
 var theBody = document.getElementById('body');
 var picomBar = document.getElementById('picomBar');
 var viewport = window.visualViewport;
+var settingsButton;
+var editButton;
 var boardDiskFormat = 0; // 0: just one board. 1: folder of boards. 2: obz file (zip) 2 is not working yet
 
 var cvs;
@@ -46,11 +48,9 @@ var highlightRow = -1;
 var scanningSpeed = .5;
 var splash;
 var buttonPanel;
-//var started = false;
 
 window.onload = () => {
     'use strict';
-
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker
             .register('./sw.js');
@@ -80,6 +80,8 @@ window.onload = () => {
     window.visualViewport.addEventListener('resize', viewportHandler);
 
     splash = document.querySelector('splash');
+    settingsButton = document.querySelector('settings');
+    editButton = document.querySelector('editButton');
     buttonPanel = document.querySelector('buttonPanel');
     buttonPanel.tabIndex = -1;
     buttonPanel.hidden = true;
@@ -99,6 +101,18 @@ window.onload = () => {
             document.body.webkitRequestFullscreen();
         }
     }
+
+    settingsButton.onclick = function (e) {
+        showSettings();
+        settingsButton.style.zIndex = "15001";
+        editButton.style.zIndex = "15000";
+    }
+
+    editButton.onclick = function (e) {
+        showEdit();
+        settingsButton.style.zIndex = "15000";
+        editButton.style.zIndex = "15001";
+    }
     if (testing) setTimeout(hideSplash, 500);
 
     function hideSplash() {
@@ -107,10 +121,12 @@ window.onload = () => {
 
     document.documentElement.style.overflow = 'hidden'; // hide scroll barsfirefox, chrome
     document.body.scroll = "no"; // ie only
-
+    jeelizCanvas = document.getElementById('jeelizFaceExpressionsCanvas');
+    jeelizCanvas.hidden = false;
     setUpToolbar();
-    setUpPanel();
+    initLanguages();
 }
+
 
 function windowResized() {
     if (params.boardStyle == 'Fullscreen') // full screen
@@ -128,7 +144,9 @@ function windowResized() {
         offsetForBoard = windowHeight * .1;
     else
         offsetForBoard = 0;
-
+    try {
+        gui.width = window.innerWidth * .32;
+    } catch (e) {}
     //    cvs.canvas.clientTop = windowHeight * .1;
 }
 
@@ -163,17 +181,18 @@ function brdLoaded(s) {
 }
 
 function loadBoard(s) {
-    currentBoardName = s.substring(s.indexOf('/') + 1);
-    if (s.includes(".obf"))
+    currentBoardName = s; //s.substring(s.indexOf('/') + 1);
+    if (s.includes(".obf")) {
         boardDiskFormat = 0;
-    else if (s.includes(".obz"))
+        currentZipBoard = "";
+    } else if (s.includes(".obz"))
         boardDiskFormat = 2;
     else
         boardDiskFormat = 1; // folder
     if (boardDiskFormat == 0) { // just one board
         //        myBoard = loadJSON(s, jsonLoaded);
         myBoard = LOADJSON(s, brdLoaded);
-        currentBoardName = s.substring(s.indexOf('/') + 1);
+        //        currentBoardName = s.substring(s.indexOf('/') + 1);
     } else if (boardDiskFormat == 1) // folder
         manifestInfo = loadJSON(boardsFolderName + 'manifest.json', manifestLoaded);
     else // obz
@@ -182,12 +201,20 @@ function loadBoard(s) {
     refreshBoard++;
 }
 
+function setFaceSpeed(i) {
+    try { // 2000 to slow things down if loading file, 80 normally
+        if (faceInitialised)
+            JEELIZFACEEXPRESSIONS.set_animateDelay(i);
+    } catch (e) {}
+}
+
 async function getZip(s) {
     //    s = "boards/zip.zip";
+    setFaceSpeed(2000)
     blob = await fetch(s).then(r => r.blob());
     zip = new JSZip();
     zip.loadAsync(blob).then(function (zipinfo) {
-        console.log(zipinfo);
+        //        console.log(zipinfo);
         zipData = zipinfo;
         zipData.file("manifest.json").async("string").then(function (data) {
             //            console.log(data);
@@ -224,15 +251,11 @@ function manifestLoaded() {
     try {
         homeBoardName = boardsFolderName + manifestInfo.root;
         myBoard = loadJSON(homeBoardName, jsonLoaded);
-    } catch (error) {
-
-    }
+    } catch (error) {}
 }
 
 var re = /(?:\.([^.]+))?$/;
 var counter;
-//var toConvert = [];
-var tmrTransparent;
 async function jsonLoaded() {
     gotGIF = false;
     //    toConvert = [];
@@ -242,16 +265,16 @@ async function jsonLoaded() {
             imgs[i] = null;
             var im = myBoard.images[i];
             if (im.hasOwnProperty('data'))
-                imgs[i] = loadImage(myBoard.images[i].data, imageLoaded);
+                imgs[i] = await loadImage(myBoard.images[i].data, imageLoaded);
             else if (im.hasOwnProperty('path')) {
                 if (boardDiskFormat == 1)
-                    imgs[i] = loadImage(boardsFolderName + myBoard.images[i].path, imageLoaded);
+                    imgs[i] = await loadImage(boardsFolderName + myBoard.images[i].path, imageLoaded);
                 else { // now read images from zip
                     var ext = re.exec(myBoard.images[i].path)[1];
                     if (ext == 'svg') {
                         //                        console.log(counter + " " + myBoard.images[i].path)
                         const fileStr2 = await zipData.file(myBoard.images[i].path).async('base64').then(function (data) {
-                            imgs[counter] = loadImage("data:image/svg+xml;base64," + data);
+                            imgs[counter] = loadImage("data:image/svg+xml;base64," + data, imageLoaded);
                             //                            imgs[counter].width = 250;
                             //                            imgs[counter].height = 250;
                         }).catch(function (err) {
@@ -259,7 +282,7 @@ async function jsonLoaded() {
                         })
                     } else {
                         const fileStr = await zipData.file(myBoard.images[i].path).async('base64').then(function (data) {
-                            imgs[counter] = loadImage("data:image/" + ext + ";base64," + data);
+                            imgs[counter] = loadImage("data:image/" + ext + ";base64," + data, imageLoaded);
                         }).catch(function (err) {
                             console.error("Failed to open file:", err);
                         })
@@ -269,7 +292,7 @@ async function jsonLoaded() {
                     gotGIF = true;
                 }
             } else if (im.hasOwnProperty('url'))
-                imgs[i] = loadImage(myBoard.images[i].url, imageLoaded);
+                imgs[i] = await loadImage(myBoard.images[i].url, imageLoaded);
             else
                 imgs[i] = null;
         }
@@ -277,6 +300,9 @@ async function jsonLoaded() {
         columns = myBoard.grid.columns;
         refreshBoard++;
         //imgs[0] = null
+        setTimeout(function () {
+            setFaceSpeed(80);
+        }, 500);
 
     } catch (error) {
         for (i = 0; i < myBoard.images.length; i++) {
@@ -284,8 +310,6 @@ async function jsonLoaded() {
         }
     }
 
-    //   refreshBoard = 1;
-    //   if (boardDiskFormat == 2)
     setTimeout(windowResized, 100);
 
     function imageLoaded() {
@@ -334,12 +358,13 @@ var busy = false;
 function draw() {
     //    if (!started)
     //        return;
-    if (busy)
-        return;
-    if (gotGIF)
-        refreshBoard = 1;
-    if (refreshBoard > 0) {
-        refreshBoard--;
+    if (busy) return;
+    busy = true;
+    //    if (gotGIF)
+    //    refreshBoard = 1;
+    //    if (refreshBoard > 0) {
+    //        refreshBoard--;
+    try {
         clear();
         if (params.highContrast)
             background(32);
@@ -360,23 +385,21 @@ function draw() {
             }
         }
         textSize(stepy / 10);
-        try {
-            for (i = 0; i < rows; i++)
-                for (j = 0; j < columns; j++) {
-                    drawGrid(i, j, myBoard.grid.order[i][j]);
-                }
-        } catch (err) {}
-    }
+    } catch (err) {}
+
+    for (i = 0; i < rows; i++)
+        for (j = 0; j < columns; j++) {
+            try {
+                drawGrid(i, j, myBoard.grid.order[i][j]);
+            } catch (err) {}
+        }
+    //    }
     busy = false;
 }
 
 function drawGrid(i, j, btnId) {
-    //    if (btnId == null) {
-    //        btnOrder[i * columns + j] = null;
-    //        return;
-    //    }
     var btnIndex = buttonIndexFromId(btnId);
-    btnOrder[i * columns + j] = btnIndex;
+    //    btnOrder[i * columns + j] = btnIndex;
     if (btnIndex >= 0) {
         drawButton(i, j, btnIndex);
     } else
@@ -650,21 +673,28 @@ function justSelected(x, y) {
 
             //       speech.speak("load board");
         } else { // add info to message area
-            if (buttonCount >= 10) {
-                ctx.fillStyle = "#FFFFFF";
-                buttonCount = 0;
-                for (j = 0; j < 10; j++) {
-                    ctx.fillRect(j * 100, 0, 100, 150);
-                    btnsLabels[j].textContent = "";
-                }
+            var instant = false;
+            if (myBoard.buttons[btnIndex].hasOwnProperty('ext_instant')) {
+                instant = myBoard.buttons[btnIndex].ext_instant
             }
 
-            btnsLabels[buttonCount].textContent = myBoard.buttons[btnIndex].label;
-            var imgIndex = imageIndexFromId(myBoard.buttons[btnIndex].image_id);
-            ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(buttonCount * 100, 0, 100, 150);
-            ctx.drawImage(imgs[imgIndex].canvas, 2 + buttonCount * 100, 2, 96, 120);
-            buttonCount++;
+            if (!instant) {
+                if (buttonCount >= 10) {
+                    ctx.fillStyle = "#FFFFFF";
+                    buttonCount = 0;
+                    for (j = 0; j < 10; j++) {
+                        ctx.fillRect(j * 100, 0, 100, 150);
+                        btnsLabels[j].textContent = "";
+                    }
+                }
+
+                btnsLabels[buttonCount].textContent = myBoard.buttons[btnIndex].label;
+                var imgIndex = imageIndexFromId(myBoard.buttons[btnIndex].image_id);
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(buttonCount * 100, 0, 100, 150);
+                ctx.drawImage(imgs[imgIndex].canvas, 2 + buttonCount * 100, 2, 96, 120);
+                buttonCount++;
+            }
             if (tts && params.vocaliseEachButton) // vocaliseLinkButtons
                 speech.speak(txt);
             if (homeBoardName != currentBoardName && params.autoReturnToHome)

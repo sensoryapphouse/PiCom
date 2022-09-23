@@ -1,7 +1,11 @@
 .dg {
-    font-size: 16px;
+    font-size: 15px;
 }
 
 .dg .c select {
-    font-size: 16px;
+    font-size: 14px;
+}
+
+.dg li:not(.folder) {
+    overflow: hidden;
 }

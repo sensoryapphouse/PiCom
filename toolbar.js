@@ -15,6 +15,10 @@ var highlightButton;
 
 function goHome() {
     //    return;
+    //    var scale = 'scale(1)';
+    //    document.body.style.webkitTransform = scale; // Chrome, Opera, Safari
+    //    document.body.style.msTransform = scale; // IE 9
+    //    document.body.style.transform = scale; // General
     if (boardDiskFormat == 2)
         loadZipBoard(homeBoardName);
     else if (boardDiskFormat == 1)
@@ -103,7 +107,7 @@ function setUpToolbar() {
     };
     picomBar.appendChild(homeBtn);
 
-    leftButton = document.createElement("button");
+    leftButton = document.createElement("canvas");
     leftButton.style.position = "absolute";
     leftButton.style.bottom = "0vh";
     leftButton.style.left = "0vw";
@@ -125,7 +129,7 @@ function setUpToolbar() {
         if (params.inputMethod == "Switches") {
             e.stopPropagation();
             e.preventDefault();
-            if (switchInput == "Press") {
+            if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     doClick(0);
                 else
@@ -149,7 +153,7 @@ function setUpToolbar() {
         if (params.inputMethod == "Switches") {
             e.stopPropagation();
             e.preventDefault();
-            if (switchInput == "Release")
+            if (switchInput == strRelease)
                 doClick(0);
         } else {
             firstTouch = false;
@@ -208,7 +212,7 @@ function setUpToolbar() {
         if (params.inputMethod == "Switches") {
             e.stopPropagation();
             e.preventDefault();
-            if (switchInput == "Press") {
+            if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     doClick(0);
                 else
@@ -232,7 +236,7 @@ function setUpToolbar() {
         if (params.inputMethod == "Switches") {
             e.stopPropagation();
             e.preventDefault();
-            if (switchInput == "Release")
+            if (switchInput == strRelease)
                 doClick(0);
         } else {
             firstTouch = false;
@@ -295,9 +299,9 @@ function setUpToolbar() {
                 }
                 if (currentX < 0)
                     currentX = 0;
-                if (state == 0 && switchInput == "Press") //down
+                if (state == 0 && switchInput == strPress) //down
                     doClick(0);
-                if (state == 1 && switchInput == "Release") //down
+                if (state == 1 && switchInput == strRelease) //down
                     doClick(0);
 
                 refreshBoard = 1;
@@ -322,9 +326,9 @@ function setUpToolbar() {
                     tpdSleep = true;
                     clearInterval(tmrRepeat);
                     console.log("Tpad: ", tmpX, tmpY);
-                    if (state == 0 && switchInput == "Press")
+                    if (state == 0 && switchInput == strPress)
                         doClick(0);
-                    else if (state == 1 && switchInput == "Release")
+                    else if (state == 1 && switchInput == strRelease)
                         doClick(0);
                 }
             }
@@ -526,32 +530,48 @@ function removeToolbarHighlight() {
 }
 
 function setUpForButtons() {
+    jeelizCanvas.hidden = true;
     rightButton.hidden = false;
     rightButton.style.backgroundImage = "url('images/button_red.png')";
     rightButton.style.border = 'none';
     leftButton.hidden = false;
     leftButton.style.backgroundImage = "url('images/button_blue.png')";
     leftButton.style.border = 'none';
+    leftButton.style.height = "10vh";
     backspace.style.left = "75vw";
     clearDisplay.style.left = "82.5vw";
     homeBtn.style.left = "10.3vw";
 }
 
 function setUpForTouchpad() {
+    jeelizCanvas.hidden = true;
     rightButton.hidden = false;
     rightButton.style.backgroundImage = "url('images/touchpad3.png')";
     rightButton.style.border = 'inset';
     leftButton.hidden = false;
     leftButton.style.backgroundImage = "url('images/touchpad3.png')";
     leftButton.style.border = 'inset';
+    leftButton.style.height = "10vh";
     backspace.style.left = "75vw";
     clearDisplay.style.left = "82.5vw";
     homeBtn.style.left = "10.3vw";
 }
 
-function setupToolbarDefault() {
+function setUpForFace() {
+    jeelizCanvas.hidden = false;
     rightButton.hidden = true;
     leftButton.hidden = true;
+    backspace.style.left = "75vw";
+    leftButton.style.height = "15vh";
+    clearDisplay.style.left = "82.5vw";
+    homeBtn.style.left = "10.3vw";
+}
+
+function setupToolbarDefault() {
+    jeelizCanvas.hidden = true;
+    rightButton.hidden = true;
+    leftButton.hidden = true;
+    leftButton.style.height = "10vh";
     homeBtn.style.left = "5vw";
     backspace.style.left = "79.5vw";
     clearDisplay.style.left = "88vw";

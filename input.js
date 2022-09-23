@@ -9,9 +9,9 @@ var tchCount;
 function touchStarted(event) {
     console.log("Touch started");
     if (event.touches.length > 1) {
-        if (event.touches[0].clientX > windowWidth * .75 && event.touches[0].clientY < windowHeight * .25) {
+        if (event.touches[0].clientX < windowWidth * .25 && event.touches[0].clientY < windowHeight * .25) {
             showGUI++;
-            console.log("Right clicks: ", showGUI)
+            console.log("Two fingers: ", showGUI)
             if (showGUI > 2) {
                 buttonPanel.hidden = true; // hide button editor if showing
                 gui.show();
@@ -89,7 +89,8 @@ function mousePressed(event) {
         case 'Analog Joystick':
         case 'MouseWheel':
         case 'Cursor Keys/Dpad':
-            if (switchInput == "Press") {
+        case strFace:
+            if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     mseEvent(event);
                 else
@@ -99,7 +100,7 @@ function mousePressed(event) {
             }
             break;
         case 'Switches':
-            if (switchInput == "Press") {
+            if (switchInput == strPress) {
                 mseEvent(event);
             }
             break;
@@ -118,12 +119,13 @@ function mouseReleased(event) {
         case 'Analog Joystick':
         case 'MouseWheel':
         case 'Cursor Keys/Dpad':
-            if (switchInput == "Release") {
+        case strFace:
+            if (switchInput == strRelease) {
                 mseEvent(event);
             }
             break;
         case 'Switches':
-            if (switchInput == "Release") {
+            if (switchInput == strRelease) {
                 mseEvent(event);
             }
             break;
@@ -192,7 +194,7 @@ function mouseMoved(event) {
         case 'Cursor Keys/Dpad':
             break;
         case 'Switches':
-            if (switchInput == "Hover") {
+            if (switchInput == strHover) {
                 doClick(0);
             }
             break;
@@ -227,7 +229,7 @@ function mouseMoved(event) {
 
             }
             refreshBoard++;
-            if (switchInput == "Hover") {
+            if (switchInput == strHover) {
                 tmrHover = setTimeout(function () {
                     doClick(0);
                     refreshBoard++;
@@ -242,7 +244,7 @@ function mouseMoved(event) {
 function keyPressed() {
     switch (keyCode) {
         case LEFT_ARROW:
-            if (switchInput == "Press") {
+            if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     moveLeft();
                 else
@@ -252,7 +254,7 @@ function keyPressed() {
             }
             break;
         case RIGHT_ARROW:
-            if (switchInput == "Press") {
+            if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     moveRight();
                 else
@@ -262,7 +264,7 @@ function keyPressed() {
             }
             break;
         case UP_ARROW:
-            if (switchInput == "Press") {
+            if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     moveUp();
                 else
@@ -272,7 +274,7 @@ function keyPressed() {
             }
             break;
         case DOWN_ARROW:
-            if (switchInput == "Press") {
+            if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     moveDown();
                 else
@@ -284,7 +286,7 @@ function keyPressed() {
         case 13: // return
         case 51: // 3
         case 52: // 4
-            if (switchInput == "Press") {
+            if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     doClick(1);
                 else
@@ -296,7 +298,7 @@ function keyPressed() {
         case 32: // space
         case 49: // 1
         case 50: // 2
-            if (switchInput == "Press") {
+            if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     doClick(0);
                 else
@@ -311,17 +313,25 @@ function keyPressed() {
             //            }
             //            break;
         case 83: // S - settings
-            if (keyIsDown(CONTROL)) {
+            if (settingsButton.hidden == false)
+                return;
+            if (keyIsDown(SHIFT)) {
                 console.log("CTRL_S");
                 showSettings();
             }
             break;
-        case 69: // E - edit
-            if (keyIsDown(CONTROL)) {
-                console.log("SHIFT_E");
-                showEdit();
-            }
-            break;
+            //        case 69: // E - edit
+            //            if (keyIsDown(SHIFT)) {
+            //                console.log("SHIFT_E");
+            //                showEdit();
+            //            }
+            //            break;
+        case 27: // esc
+            if (!buttonPanel.hidden)
+                closeEdit();
+            gui.hide();
+            guiVisible = false;
+            showTabs(0);
     }
     //    console.log(keyCode);
     if (event.ctrlKey) {
@@ -335,35 +345,35 @@ function keyReleased() {
     console.log("Key Released", keyCode)
     switch (keyCode) {
         case LEFT_ARROW:
-            if (switchInput == "Release") {
+            if (switchInput == strRelease) {
                 moveLeft();
             }
             break;
         case RIGHT_ARROW:
-            if (switchInput == "Release") {
+            if (switchInput == strRelease) {
                 moveRight();
             }
             break;
         case UP_ARROW:
-            if (switchInput == "Release") {
+            if (switchInput == strRelease) {
                 moveUp();
             }
             break;
         case DOWN_ARROW:
-            if (switchInput == "Release") {
+            if (switchInput == strRelease) {
                 moveDown();
             }
             break;
         case 13: // return
         case 51: // 3
         case 52: // 4
-            if (switchInput == "Release")
+            if (switchInput == strRelease)
                 doClick(1);
             break;
         case 32: // space
         case 49: // 1
         case 50: // 2
-            if (switchInput == "Release")
+            if (switchInput == strRelease)
                 doClick(0);
             break;
     }
@@ -526,7 +536,7 @@ window.addEventListener('wheel', (e) => {
         if (params.inputMethod == 'MouseWheel') {
             var movement = e.deltaY;
             console.log("MouseWheel", movement);
-            if (switchInput == "Hover") {
+            if (switchInput == strHover) {
                 hoverTimer();
                 clearTimeout(tmrHover);
                 tmrHover = setTimeout(function () {

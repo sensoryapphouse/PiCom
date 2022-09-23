@@ -55,7 +55,7 @@ function showPressedButton(index) {
     if (!splash.hidden) { // splash screen
         splash.hidden = true;
     } else {
-        if (switchInput == "Press") {
+        if (switchInput == strPress) {
             switch (index) {
                 case 0: // A
                     if (params.acceptanceDelay == 0)
@@ -121,7 +121,7 @@ function showPressedButton(index) {
 
 function removePressedButton(index) {
     clearTimeout(tmrAccept);
-    if (switchInput == "Release") {
+    if (switchInput == strRelease) {
         console.log("Released: ", index);
         switch (index) {
             case 0: // A

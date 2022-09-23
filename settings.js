@@ -11,7 +11,7 @@ var defaultParams = {
     toolbarSize: 'medium',
     textPos: 'top', // 0: text at top. 1: text at bottom. 2: no text
     buttonSpacing: 'medium',
-    backgroundColour: 'rgb(222,222,222)',
+    backgroundColour: 'rgb(180,222,222)',
     highlightColour: 'rgb(255,255,0)',
     highContrast: false,
     inputMethod: 'Touch/Mouse',
@@ -32,6 +32,7 @@ var defaultParams = {
     voiceRate: 1,
     voicePitch: 1,
     voiceVolume: 1,
+    backgroundImage: null
 };
 var params = defaultParams;
 var gotOBF = false;
@@ -52,6 +53,13 @@ function boardsLoaded() {
     } catch (error) {}
 }
 
+function resetParams() {
+    localStorage.clear();
+    params = defaultParams;
+    loadFileObj();
+    boardsJson = loadJSON("boards/boards.json", boardsLoaded);
+}
+
 function loadParams() {
     try {
         //        throw "null";
@@ -62,10 +70,7 @@ function loadParams() {
         loadFileObj();
         boardsJson = loadJSON("boards/boards.json", boardsLoaded);
     } catch (e) {
-        localStorage.clear();
-        params = defaultParams;
-        loadFileObj();
-        boardsJson = loadJSON("boards/boards.json", boardsLoaded);
+        resetParams();
     };
 }
 
@@ -129,8 +134,8 @@ async function doSaveFile() {
         return;
     }
 
+
     const file = await saveFile.getFile();
-    saveFileObj(file);
     if (typeof saveFile !== "undefined") {
         if ((await saveFile.queryPermission()) === 'granted') {
             const writable = await saveFile.createWritable();
@@ -211,6 +216,7 @@ async function saveFileObj(obj) {
 
 function showEdit() {
     //    return;
+    showTabs(1);
     if (currentY == rows)
         currentY--;
     gui.hide();
@@ -232,22 +238,27 @@ function showEdit() {
 }
 
 function showSettings() {
+    showTabs(1);
+    if (!buttonPanel.hidden)
+        closeEdit();
+    gui.width = window.innerWidth * .32;
     gui.show();
     guiVisible = true;
 }
 
 function setUpGUI() {
+    setUpPanel();
+
     gui = new dat.GUI({
-        autoPlace: false,
+        //        autoPlace: false,
         width: 350
     });
     gui.domElement.id = 'gui';
     gui_container.appendChild(gui.domElement);
-
     var close = {
         X: function () {
+            showTabs(0);
             gui.hide();
-            //            buttonPanel.hidden = true;
             setTimeout(hideSettings, 500);
 
             function hideSettings() {
@@ -308,8 +319,7 @@ function setUpGUI() {
         }
     };
 
-    gui.add(close, 'X');
-
+    var c = gui.add(close, 'X');
     gui.__closeButton.hidden = true;
 
     function setOptions() {
@@ -412,22 +422,54 @@ function setUpGUI() {
                 setSelectSwitchOptions();
                 switchStyleOptions();
                 break;
+            case strFace:
+                speed.__min = 0;
+                if (params.speed == .2)
+                    speed.setValue(0);
+                enableZoom.__li.style.display = "none";
+                touchpadMode.__li.style.display = "none";
+                touchpadSize.__li.style.display = "none";
+                switchStyle.__li.style.display = "none";
+                selectOn.__li.style.display = "";
+                selectOnSwitches.__li.style.display = "none";
+                speed.__li.style.display = "";
+                mouseWheel.__li.style.display = "none";
+                setSelectOptions();
+                setUpForFace();
+                initialiseFace();
+                break;
+            case strFaceExpressions:
+                speed.__min = 0;
+                if (params.speed == .2)
+                    speed.setValue(0);
+                enableZoom.__li.style.display = "none";
+                touchpadMode.__li.style.display = "none";
+                touchpadSize.__li.style.display = "none";
+                switchStyle.__li.style.display = "none";
+                selectOn.__li.style.display = "none";
+                selectOnSwitches.__li.style.display = "";
+                speed.__li.style.display = "";
+                mouseWheel.__li.style.display = "none";
+                setSelectSwitchOptions();
+                setUpForFace();
+                initialiseFace();
+                break;
         }
         refreshBoard = 1;
     }
 
-    var boards = gui.add(params, 'boardName', boardNames).name('PiCom Boards').onChange(function () {
+    var boards = gui.add(params, 'boardName', boardNames).name(strPiComBoards).onChange(function () {
         loadBoard('boards/' + params.boardName);
         saveFileObj(null);
     });
-    var inputOptions = gui.addFolder('Input Options');
-    var inputMethod = inputOptions.add(params, 'inputMethod', ['Touch/Mouse', 'Touchpad', 'Analog Joystick', 'Cursor Keys/Dpad', 'MouseWheel', 'Switches'
+    var inputOptions = gui.addFolder(strInputOptions);
+    var inputMethod = inputOptions.add(params, 'inputMethod', ['Touch/Mouse', 'Touchpad', 'Analog Joystick', 'Cursor Keys/Dpad', 'MouseWheel', 'Switches', strFace, strFaceExpressions
                                    // , 'Face', 'Eyes'
-                                   ]).name('Input Method').onChange(setOptions);
+                                   ]).name(strInputMethod).onChange(setOptions);
 
-    var enableZoom = inputOptions.add(params, 'allowZoom').name('Allow Zoom');
+    var enableZoom = inputOptions.add(params, 'allowZoom').name(strAllowZoom);
 
-    var touchpadMode = inputOptions.add(params, 'touchpadMode', ['Absolute', 'Joystick']).name('Touchpad Mode').onChange(touchpadOptions);
+    var touchpadMode = inputOptions.add(params, 'touchpadMode', ['Absolute', 'Joystick']).name(strTouchpadMode).onChange(touchpadOptions);
 
 
     function touchpadOptions() {
@@ -443,7 +485,7 @@ function setUpGUI() {
         }
     }
 
-    var touchpadSize = inputOptions.add(params, 'touchpadSize', 1, 3, 1).name('Touchpad Size').onChange(setTouchpadSize);
+    var touchpadSize = inputOptions.add(params, 'touchpadSize', 1, 3, 1).name(strTouchpadSize).onChange(setTouchpadSize);
 
     function setTouchpadSize() {
         switch (params.touchpadSize) {
@@ -468,7 +510,7 @@ function setUpGUI() {
         }
     }
 
-    var mouseWheel = inputOptions.add(params, 'mouseWheel', ['Row/Column', 'Step']).name('Wheel Scan').onChange(mouseWheelChange);
+    var mouseWheel = inputOptions.add(params, 'mouseWheel', ['Row/Column', 'Step']).name(strWheelScan).onChange(mouseWheelChange);
 
     function mouseWheelChange() {
         switch (params.mouseWheel) {
@@ -487,7 +529,7 @@ function setUpGUI() {
         refreshBoard++;
     }
 
-    var switchStyle = inputOptions.add(params, 'switchStyle', ['Two switch step', 'Two switch row/column', 'One switch step', 'One switch row/column', 'One switch overscan']).name('Switch style').onChange(switchStyleOptions);
+    var switchStyle = inputOptions.add(params, 'switchStyle', ['Two switch step', 'Two switch row/column', 'One switch step', 'One switch row/column', 'One switch overscan']).name(strSwitchStyle).onChange(switchStyleOptions);
 
     function switchStyleOptions() {
         switchInput = params.selectWithSwitchScan;
@@ -496,21 +538,21 @@ function setUpGUI() {
         else
             speed.__li.style.display = "";
         switch (params.selectWithSwitchScan) {
-            case 'Press':
+            case strPress:
                 acceptanceDelay.__li.style.display = "";
                 break;
-            case 'Release':
+            case strRelease:
                 acceptanceDelay.__li.style.display = "none";
                 break;
         }
         setRowHighlight();
     }
 
-    var speed = inputOptions.add(params, 'speed', 0.0, 3.0, .2).name('Speed');
+    var speed = inputOptions.add(params, 'speed', 0.0, 3.0, .2).name(strSpeed);
 
-    var selectOn = inputOptions.add(params, 'selectWith', ['Press', 'Release', 'Hover']).name('Select on').onChange(setSelectOptions);
+    var selectOn = inputOptions.add(params, 'selectWith', [strPress, strRelease, strHover]).name(strSelectOn).onChange(setSelectOptions);
 
-    var selectOnSwitches = inputOptions.add(params, 'selectWithSwitchScan', ['Press', 'Release']).name('Select on').onChange(setSelectSwitchOptions);
+    var selectOnSwitches = inputOptions.add(params, 'selectWithSwitchScan', [strPress, strRelease]).name(strSelectOn).onChange(setSelectSwitchOptions);
 
     function setSelectOptions() {
         switchInput = params.selectWith;
@@ -520,19 +562,19 @@ function setUpGUI() {
             //                acceptanceDelayHover.__li.style.display = "none";
             //                break;
 
-            case 'Press':
+            case strPress:
                 acceptanceDelay.__li.style.display = "";
                 acceptanceDelayHover.__li.style.display = "none";
                 if (params.inputMethod == 'Cursor Keys/Dpad')
                     speed.__li.style.display = "none";
                 break;
-            case 'Release':
+            case strRelease:
                 acceptanceDelay.__li.style.display = "none";
                 acceptanceDelayHover.__li.style.display = "none";
                 if (params.inputMethod == 'Cursor Keys/Dpad')
                     speed.__li.style.display = "none";
                 break;
-            case 'Hover':
+            case strHover:
                 acceptanceDelay.__li.style.display = "none";
                 acceptanceDelayHover.__li.style.display = "";
                 if (params.inputMethod == 'Cursor Keys/Dpad')
@@ -588,21 +630,21 @@ function setUpGUI() {
             //                acceptanceDelay.__li.style.display = "none";
             //                acceptanceDelayHover.__li.style.display = "none";
             //                break;
-            case 'Press':
+            case strPress:
                 acceptanceDelay.__li.style.display = "";
                 acceptanceDelayHover.__li.style.display = "none";
                 break;
-            case 'Release':
+            case strRelease:
                 acceptanceDelay.__li.style.display = "none";
                 acceptanceDelayHover.__li.style.display = "none";
                 break;
         }
     }
-    var acceptanceDelay = inputOptions.add(params, 'acceptanceDelay', 0., 2.0, .1).name('Accept Timer');
-    var acceptanceDelayHover = inputOptions.add(params, 'acceptanceDelayHover', 0.3, 3.0, .1).name('Hover Timer');
+    var acceptanceDelay = inputOptions.add(params, 'acceptanceDelay', 0., 2.0, .1).name(strAcceptTimer);
+    var acceptanceDelayHover = inputOptions.add(params, 'acceptanceDelayHover', 0.3, 3.0, .1).name(strHoverTimer);
 
-    var visual = gui.addFolder('Visual');
-    visual.add(params, 'boardStyle', ['Fullscreen', 'ToolbarTop', 'ToolbarBottom']).name('Toolbar').onChange(toolbarPos);
+    var visual = gui.addFolder(strVisual);
+    visual.add(params, 'boardStyle', ['Fullscreen', 'ToolbarTop', 'ToolbarBottom']).name(strToolbar).onChange(toolbarPos);
 
     function toolbarPos() {
         switch (params.boardStyle) {
@@ -630,15 +672,15 @@ function setUpGUI() {
         windowResized();
         refreshBoard = 1;
     }
-    visual.add(params, 'textPos', ['top', 'bottom', 'none']).name('Label position').onChange(
+    visual.add(params, 'textPos', ['top', 'bottom', 'none']).name(strLabelPosition).onChange(
         function () {
             refreshBoard = 1;
         });
-    visual.add(params, 'buttonSpacing', ['small', 'medium', 'large']).name('Spacing').onChange(
+    visual.add(params, 'buttonSpacing', ['small', 'medium', 'large']).name(strSpacing).onChange(
         function () { // grey out background colour if high contrast
             refreshBoard = 1;
         });
-    var hc = visual.add(params, 'highContrast').name('High Contrast').onChange(
+    var hc = visual.add(params, 'highContrast').name(strHighContrast).onChange(
         function () { // grey out background colour if high contrast
             if (params.highContrast)
                 bcol.__li.style = "opacity: 1.0; filter: grayscale(100%) blur(1px); pointer-events: none;";
@@ -647,7 +689,7 @@ function setUpGUI() {
             refreshBoard = 1;
         });
 
-    var bcol = visual.addColor(params, 'backgroundColour').name('Background').onChange(
+    var bcol = visual.addColor(params, 'backgroundColour').name(strBackground).onChange(
         function () {
             backgroundButton.style.backgroundColor = params.backgroundColour;
             homeBtn.style.backgroundColor = params.backgroundColour;
@@ -656,54 +698,55 @@ function setUpGUI() {
             refreshBoard = 1;
         });
 
-    var highlightColour = visual.addColor(params, 'highlightColour').name('Highlight').onChange(
+    var highlightColour = visual.addColor(params, 'highlightColour').name(strHighlight).onChange(
         function () {
             refreshBoard = 1;
         });
 
     changeVoice(params.currentVoice);
-    var speechSettings = gui.addFolder('Speech');
+    var speechSettings = gui.addFolder(strSpeech);
+
     var speechList = [];
     for (i = 0; i < speech.voices.length; i++)
         speechList[i] = speech.voices[i].name + ": " + speech.voices[i].lang;
 
-    speechSettings.add(params, 'currentVoice', speechList).name('Voice').onChange(
+    speechSettings.add(params, 'currentVoice', speechList).name(strVoice).onChange(
         function () {
             changeVoice(params.currentVoice);
             speech.stop();
             speech.speak("Hello");
+            //            speechSettings.close();
         });
-    var pitch = speechSettings.add(params, 'voicePitch', 0.1, 2.0, .1).name('Pitch').onChange(
+    var pitch = speechSettings.add(params, 'voicePitch', 0.1, 2.0, .1).name(strPitch).onChange(
         function () {
             speech.stop();
             speech.setPitch(params.voicePitch);
             speech.speak("Hello");
         });;
-    var rate = speechSettings.add(params, 'voiceRate', 0.1, 2.0, .1).name('Rate').onChange(
+    var rate = speechSettings.add(params, 'voiceRate', 0.1, 2.0, .1).name(strRate).onChange(
         function () {
             speech.stop();
             speech.setRate(params.voiceRate);
             speech.speak("Hello");
         });;
-    var volume = speechSettings.add(params, 'voiceVolume', 0.0, 1.0, .1).name('Volume').onChange(
+    var volume = speechSettings.add(params, 'voiceVolume', 0.0, 1.0, .1).name(strVolume).onChange(
         function () {
             speech.stop();
             speech.setVolume(params.voiceVolume);
             speech.speak("Hello");
         });;
 
-    speechSettings.add(params, 'vocaliseEachButton').name('Speak on select');
-    speechSettings.add(params, 'vocaliseLinkButtons').name('Speak on link');
-
-    var advancedSettings = gui.addFolder('Advanced');
-    advancedSettings.add(params, 'autoReturnToHome').name('Auto Home');
+    speechSettings.add(params, 'vocaliseEachButton').name(strSpeakOnSelect);
+    speechSettings.add(params, 'vocaliseLinkButtons').name(strSpeakOnLink);
+    var advancedSettings = gui.addFolder(strAdvanced);
+    advancedSettings.add(params, 'autoReturnToHome').name(strAutoHome);
     setOptions();
     gui.hide();
     guiVisible = false;
 
-    advancedSettings.add(load, 'Load_Board_From_File').name('Load Board From File');
-    advancedSettings.add(save, 'Save_Board_To_File').name('Save Board To File');
-    advancedSettings.add(editButton, 'Edit_Button').name('Edit Button Info');
+    advancedSettings.add(load, 'Load_Board_From_File').name(strLoadBoard);
+    advancedSettings.add(save, 'Save_Board_To_File').name(strSaveBoard);
+    //    advancedSettings.add(editButton, 'Edit_Button').name(strEditButton);
 
     document.oncontextmenu = function (e) { // three right clicks to show menu
         e.preventDefault();
@@ -715,7 +758,7 @@ function setUpGUI() {
             showGUI++;
             console.log("Right clicks: ", showGUI)
             if (showGUI > 2) {
-                buttonPanel.hidden = true; // hide button editor if showing
+                closeEdit(); // hide button editor if showing
                 showSettings();
                 showGUI++;
                 //                buttonPanel.hidden = false; // button to allow editing menu etc

@@ -25,6 +25,32 @@ var txtText;
 var txtVocal;
 var txtLink;
 var btnIndex;
+var buttonsChanged = false;
+
+
+function showTabs(i) {
+    if (i == 1) {
+        settingsButton.hidden = false;
+        editButton.hidden = false;
+    } else {
+        settingsButton.hidden = true;
+        editButton.hidden = true;
+        if (buttonsChanged) {
+            closeEdit();
+            buttonsChanged = false;
+        }
+        settingsButton.style.zIndex = "15001";
+        editButton.style.zIndex = "15000";
+    }
+}
+
+function closeEdit() {
+    if (boardDiskFormat == 2) {
+        var text = JSON.stringify(myBoard, null, ' ');
+        zip.file(currentBoardName, text);
+    }
+    buttonPanel.hidden = true;
+}
 
 function updateEditPanel() {
     if (buttonPanel.hidden)
@@ -113,11 +139,11 @@ function setUpPanel() {
     titleLbl.style.position = "absolute";
     titleLbl.style.height = "3.5vh";
     titleLbl.style.width = "27vw";
-    titleLbl.style.left = "1vw";
+    titleLbl.style.left = "4vw";
     titleLbl.style.top = "1.75vh";
     //    titleLbl.style.font = "ariel, bold, sans-serif";
     titleLbl.style.fontSize = "3.5vh";
-    titleLbl.style.color = 'black';
+    titleLbl.style.color = 'white';
     titleLbl.style.background = 'transparent';
     titleLbl.style.border = "none";
     titleLbl.style.textAlign = "left";
@@ -130,7 +156,7 @@ function setUpPanel() {
     buttonNoLbl.style.left = "21vw";
     buttonNoLbl.style.top = "8vh";
     buttonNoLbl.style.fontSize = "3vh";
-    buttonNoLbl.style.color = 'black';
+    buttonNoLbl.style.color = 'white';
     buttonNoLbl.style.background = 'transparent';
     buttonNoLbl.style.border = "none";
     buttonNoLbl.style.textAlign = "center";
@@ -144,12 +170,12 @@ function setUpPanel() {
     lblText.style.left = ".7vw";
     lblText.style.top = "51.4vh";
     lblText.style.fontSize = "3vh";
-    lblText.style.color = 'black';
+    lblText.style.color = 'white';
     lblText.style.background = 'transparent';
     lblText.style.border = "none";
     lblText.style.textAlign = "centre";
     //    lblText.style.verticalAlign = "centre";
-    lblText.innerHTML = "Text:";
+    lblText.innerHTML = strText;
 
     lblVocal = document.createElement("LABEL");
     lblVocal.style.position = "absolute";
@@ -158,12 +184,12 @@ function setUpPanel() {
     lblVocal.style.left = ".7vw";
     lblVocal.style.top = "56.4vh";
     lblVocal.style.fontSize = "3vh";
-    lblVocal.style.color = 'black';
+    lblVocal.style.color = 'white';
     lblVocal.style.background = 'transparent';
     lblVocal.style.border = "none";
     lblVocal.style.textAlign = "left";
     lblVocal.style.verticalAlign = "centre";
-    lblVocal.innerHTML = "Vocalise:";
+    lblVocal.innerHTML = strVocalise;
 
     lblLink = document.createElement("LABEL");
     lblLink.style.position = "absolute";
@@ -172,12 +198,12 @@ function setUpPanel() {
     lblLink.style.left = ".7vw";
     lblLink.style.top = "61.4vh";
     lblLink.style.fontSize = "3vh";
-    lblLink.style.color = 'black';
+    lblLink.style.color = 'white';
     lblLink.style.background = 'transparent';
     lblLink.style.border = "none";
     lblLink.style.textAlign = "left";
     lblLink.style.verticalAlign = "centre";
-    lblLink.innerHTML = "Link to:";
+    lblLink.innerHTML = strLinkTo;
 
 
     txtText = document.createElement("INPUT");
@@ -186,13 +212,14 @@ function setUpPanel() {
     txtText.style.width = "20.8vw";
     txtText.style.left = "12vw";
     txtText.style.top = "51vh";
-    txtText.style.fontSize = "3vh";
+    txtText.style.fontSize = "2.5vh";
     txtText.style.color = 'black';
     txtText.style.background = 'white';
     txtText.style.border = "inset";
     txtText.value = "";
     txtText.oninput = function (e) {
         myBoard.buttons[btnIndex].label = txtText.value;
+        buttonsChanged = true;
         refreshBoard++;
     }
 
@@ -202,13 +229,14 @@ function setUpPanel() {
     txtVocal.style.width = "20.8vw";
     txtVocal.style.left = "12vw";
     txtVocal.style.top = "56vh";
-    txtVocal.style.fontSize = "3vh";
+    txtVocal.style.fontSize = "2.5vh";
     txtVocal.style.color = 'black';
     txtVocal.style.background = 'white';
     txtVocal.style.border = "inset";
     txtVocal.value = "";
     txtVocal.oninput = function (e) {
         myBoard.buttons[btnIndex].vocalization = txtVocal.value;
+        buttonsChanged = true;
     }
 
     txtLink = document.createElement("INPUT");
@@ -217,7 +245,7 @@ function setUpPanel() {
     txtLink.style.width = "20.8vw";
     txtLink.style.left = "12vw";
     txtLink.style.top = "61vh";
-    txtLink.style.fontSize = "3vh";
+    txtLink.style.fontSize = "2.5vh";
     txtLink.style.color = 'black';
     txtLink.style.background = 'white';
     txtLink.style.border = "inset";
@@ -229,6 +257,7 @@ function setUpPanel() {
             myBoard.buttons[btnIndex].load_board = {
                 "path": txtLink.value
             }
+            buttonsChanged = true;
         }
     }
 
@@ -239,12 +268,12 @@ function setUpPanel() {
     lblInstant.style.left = "4.3vw";
     lblInstant.style.top = "66vh";
     lblInstant.style.fontSize = "3vh";
-    lblInstant.style.color = 'black';
+    lblInstant.style.color = 'white';
     lblInstant.style.background = 'none';
     lblInstant.style.border = "none";
     lblInstant.style.textAlign = "left";
     lblInstant.style.verticalAlign = "centre";
-    lblInstant.innerHTML = "Instant Message";
+    lblInstant.innerHTML = strInstandMessage;
 
     upArrow = document.createElement("INPUT");
     upArrow.style.position = "absolute";
@@ -313,6 +342,7 @@ function setUpPanel() {
     instantMsg.setAttribute("type", "checkbox");
     instantMsg.onchange = function (e) {
         myBoard.buttons[btnIndex].ext_instant = instantMsg.checked;
+        buttonsChanged = true;
     }
 
     homeChk = document.createElement("INPUT");
@@ -377,19 +407,21 @@ function setUpPanel() {
         if (backChk.checked)
             s += ":backspace ";
         myBoard.buttons[btnIndex].actions = s;
+        buttonsChanged = true;
     }
 
     close = document.createElement("INPUT");
     close.style.position = "absolute";
-    close.style.height = "6vh";
-    close.style.width = "6vw";
-    close.style.right = "0.5vw";
-    close.style.top = "1vh";
+    close.style.height = "4vh";
+    close.style.width = "3vw";
+    close.style.left = "0.25vw";
+    close.style.top = "0.25vh";
     close.style.backgroundSize = "100% 100%";
     close.style.backgroundImage = "url('images/close.png')";
     close.setAttribute("type", "button");
     close.onclick = function (e) {
-        buttonPanel.hidden = true;
+        closeEdit();
+        showTabs(0);
     }
 
     btnLoadPic = document.createElement('INPUT');
@@ -406,6 +438,7 @@ function setUpPanel() {
     btnLoadPic.setAttribute("type", "button");
     btnLoadPic.onclick = function (e) {
         var fileLoad = document.getElementById('image-input').click();
+        buttonsChanged = true;
     }
 
     document.getElementById('image-input').addEventListener('change', function (evt) {
@@ -453,13 +486,29 @@ function setUpPanel() {
     btnLoadSnd.setAttribute("type", "button");
     btnLoadSnd.onclick = function (e) {
         var fileLoad = document.getElementById('sound-input').click();
+        buttonsChanged = true;
     }
     document.getElementById('sound-input').addEventListener('change', function (evt) {
         var sndFile = document.getElementById('sound-input').files[0];
         const reader = new FileReader();
         reader.addEventListener('load', (event) => {
-            var s = event.target.result;
-            var t = "";
+            var s = ""
+            if (myBoard.sounds.length == 0) { // no sounds yet
+                s = "Picom1";
+            } else {
+                s = myBoard.sounds[myBoard.sounds.length - 1].id;
+                if (s.includes("Picom")) {
+                    s = s.substr(5);
+                    s = "Picom" + (parseInt(s) + 1);
+                } else
+                    s = "Picom1";
+            }
+            myBoard.buttons[btnIndex].sound_id = s;
+            var tmp = {
+                "id": s,
+                "data": event.target.result
+            }
+            myBoard.sounds[myBoard.sounds.length] = tmp;
         });
         reader.readAsDataURL(sndFile);
     });
@@ -493,10 +542,12 @@ function setUpPanel() {
     btnEdgeCol.onchange = function (e) {
         imgColours.style.borderColor = btnEdgeCol.value;
         myBoard.buttons[btnIndex].border_color = imgColours.style.borderColor;
+        buttonsChanged = true;
     }
     btnEdgeCol.oninput = function (e) {
         imgColours.style.borderColor = btnEdgeCol.value;
         myBoard.buttons[btnIndex].border_color = imgColours.style.borderColor;
+        buttonsChanged = true;
     }
 
     btnFillCol = document.createElement('INPUT');
@@ -512,10 +563,12 @@ function setUpPanel() {
     btnFillCol.onchange = function (e) {
         imgColours.style.backgroundColor = btnFillCol.value;
         myBoard.buttons[btnIndex].background_color = imgColours.style.backgroundColor;
+        buttonsChanged = true;
     }
     btnFillCol.oninput = function (e) {
         imgColours.style.backgroundColor = btnFillCol.value;
         myBoard.buttons[btnIndex].background_color = imgColours.style.backgroundColor;
+        buttonsChanged = true;
     }
 
     imgColours = document.createElement('IMG');
@@ -572,47 +625,115 @@ function setUpPanel() {
     buttonPanel.appendChild(clearChk);
     buttonPanel.appendChild(speakChk);
 
-    //    settings.style.left = "92vw";
-    // Retrieve settings
-    //    var s = localStorage.getItem("Racer.mute");
-    //    mute.checked = (s == "true");
-    //    s = parseInt(localStorage.getItem("Racer.speed"));
-    //    if (s < 1 || s > 7)
-    //        s = 3;
-    //    SpeedSld.value = s.toString();
-    //    speed = parseInt(SpeedSld.value);
-    //    line_speed = speed * 2.5;
-    //    s = localStorage.getItem("Racer.oneSwitch");
-    //    if (s == 1)
-    //        switchOption(1);
-    //    else
-    //        switchOption(2);
-    //    s = localStorage.getItem("Racer.holdSwitch");
-    //    if (s == 1)
-    //        switchOption(3);
-    //    else
-    //        switchOption(4);
-    //
-    //    mute.onclick = function (e) {
-    //        localStorage.setItem("Racer.mute", mute.checked);
-    //    }
-    //    SpeedSld.onclick = function (e) {
-    //        localStorage.setItem("Racer.speed", SpeedSld.value);
-    //        speed = parseInt(SpeedSld.value);
-    //        line_speed = speed * 2.5;
-    //    }
+    function onDragEnter(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
 
-    //    buttonPanel.onmousedown = function (e) { // speed, paddle size, ball size
-    //        e.stopPropagation();
-    //        e.preventDefault();
-    //    }
-    //    buttonPanel.onmouseup = function (e) { // speed, paddle size, ball size
-    //        e.stopPropagation();
-    //        e.preventDefault();
-    //    }
-    //    buttonPanel.onmousemove = function (e) { // speed, paddle size, ball size
-    //        e.stopPropagation();
-    //        e.preventDefault();
-    //    }
+    function onDragOver(e) {
 
+        //        currentX = floor(map(e.x, 0, windowWidth, 0, columns));
+        //        currentY = floor(map(e.y, offsetForBoard, windowHeight, 0, rows));
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    function onDragLeave(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    var fileType;
+
+    function onDrop(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        if (buttonPanel.hidden)
+            return;
+        buttonsChanged = true;
+        btnIndex = buttonIndexFromId(myBoard.grid.order[currentY][currentX]);
+        if (btnIndex < 0)
+            return;
+        //        setFiles(e.dataTransfer.files);
+
+        if (e.dataTransfer.files.length > 0) {
+            var imgFile = e.dataTransfer.files[0];
+            filetype = imgFile.type
+            const reader = new FileReader();
+            reader.addEventListener('load', (event) => {
+                if (filetype.toLowerCase().includes("image")) {
+
+                    imgCurrentImg.src = event.target.result;
+                    var s = myBoard.images[myBoard.images.length - 1].id;
+                    if (s.includes("Picom")) {
+                        s = s.substr(5);
+                        s = "Picom" + (parseInt(s) + 1);
+                    } else
+                        s = "Picom1";
+                    myBoard.buttons[btnIndex].image_id = s;
+                    imgs[imgs.length] = loadImage(event.target.result, pictureLoaded);
+                    tmpPicture = {
+                        "id": s,
+                        "width": 250,
+                        "height": 250,
+                        "data": event.target.result
+                    }
+                }
+                if (filetype.toLowerCase().includes("audio")) {
+
+                    var s = ""
+                    if (myBoard.sounds.length == 0) { // no sounds yet
+                        s = "Picom1";
+                    } else {
+                        s = myBoard.sounds[myBoard.sounds.length - 1].id;
+                        if (s.includes("Picom")) {
+                            s = s.substr(5);
+                            s = "Picom" + (parseInt(s) + 1);
+                        } else
+                            s = "Picom1";
+                    }
+                    myBoard.buttons[btnIndex].sound_id = s;
+                    var tmp = {
+                        "id": s,
+                        "data": event.target.result
+                    }
+                    myBoard.sounds[myBoard.sounds.length] = tmp;
+                }
+
+            });
+            reader.readAsDataURL(imgFile);
+        } else {
+            //            var imageUrl = e.dataTransfer.getData('URL');
+            var html = e.dataTransfer.getData('text/html');
+            var src = new DOMParser().parseFromString(html, "text/html").querySelector('img').src;
+            imgCurrentImg.src = src;
+            var s = myBoard.images[myBoard.images.length - 1].id;
+            if (s.includes("Picom")) {
+                s = s.substr(5);
+                s = "Picom" + (parseInt(s) + 1);
+            } else
+                s = "Picom1";
+            myBoard.buttons[btnIndex].image_id = s;
+            tmpPicture = {
+                "id": s,
+                "width": 250,
+                "height": 250,
+                "data": src
+            }
+            imgs[imgs.length] = loadImage(src, pictureLoaded);
+        }
+        return false;
+    }
+
+    var tmpPicture;
+
+    function pictureLoaded() {
+        refreshBoard++;
+        myBoard.images[myBoard.images.length] = tmpPicture;
+    }
+
+    document.addEventListener('dragenter', onDragEnter, false);
+    document.addEventListener('dragover', onDragOver, false);
+    document.addEventListener('dragleave', onDragLeave, false);
+    document.addEventListener('drop', onDrop, false);
 }
