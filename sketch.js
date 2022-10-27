@@ -1,15 +1,19 @@
-var testing = true;
+var testing = false;
+var smallPortrait = false;
 
 var myBoard = {};;
 var imgs = [];
 var btnOrder = [];
 var columns;
+
 var rows;
 var stepx;
 var stepy;
 var refreshBoard = 1; // redraw board
 var manifestInfo;
 var offsetForBoard = 0;
+
+var crosshairs;
 
 var gotGIF = false;
 var gui;
@@ -26,6 +30,9 @@ var picomBar = document.getElementById('picomBar');
 var viewport = window.visualViewport;
 var settingsButton;
 var editButton;
+var closeButton;
+var boardButton;
+
 var boardDiskFormat = 0; // 0: just one board. 1: folder of boards. 2: obz file (zip) 2 is not working yet
 
 var cvs;
@@ -47,11 +54,24 @@ var inputMethod = 'Touch/Mouse';
 var highlightRow = -1;
 var scanningSpeed = .5;
 var splash;
+var settingsSplash;
+var startSplash;
 var buttonPanel;
+
+window.addEventListener('beforeunload', function (e) {
+    if (!testing) { // don't allow to close without offering save
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+function doSettingsSplash() {
+    settingsSplash.hidden = params.chkHideSettings;
+}
 
 window.onload = () => {
     'use strict';
-    if ('serviceWorker' in navigator) {
+    if ('serviceWorker' in navigator && !testing) {
         navigator.serviceWorker
             .register('./sw.js');
     }
@@ -80,43 +100,79 @@ window.onload = () => {
     window.visualViewport.addEventListener('resize', viewportHandler);
 
     splash = document.querySelector('splash');
-    settingsButton = document.querySelector('settings');
+    startSplash = document.querySelector('startSplash');
+    settingsSplash = document.querySelector('settingsSplash');
+
+    crosshairs = document.querySelector('crosshairs');
+    crosshairs.style.left = window.innerWidth / 2 + "px";
+    crosshairs.style.top = window.innerHeight / 2 + "px";
+    closeButton = document.querySelector('closeButton');
     editButton = document.querySelector('editButton');
+    settingsButton = document.querySelector('settings');
+    boardButton = document.querySelector('boardButton');
     buttonPanel = document.querySelector('buttonPanel');
     buttonPanel.tabIndex = -1;
     buttonPanel.hidden = true;
-    splash.onclick = function (e) {
+
+    setTimeout(function () {
+        settingsSplash.hidden = false;
+        startSplash.hidden = false;
+    }, 300);
+
+    settingsSplash.onmousedown = function (e) {
+        lastTab = 1;
+        showSettings();
+        showTabs(1);
+        startSplash.hidden = true;
+        splash.hidden = true;
         e.stopPropagation();
         e.preventDefault();
-        setTimeout(function () {
-            splash.hidden = true;
-        }, params.speed * 200);
-        if (document.body.requestFullscreen) {
-            document.body.requestFullscreen();
-        } else if (document.body.msRequestFullscreen) {
-            document.body.msRequestFullscreen();
-        } else if (document.body.mozRequestFullScreen) {
-            document.body.mozRequestFullScreen();
-        } else if (document.body.webkitRequestFullscreen) {
-            document.body.webkitRequestFullscreen();
-        }
+    }
+
+    startSplash.onclick = function (e) {
+        lastTab = 1;
+        doSettingsSplash();
+        startSplash.hidden = true;
+        splash.hidden = true;
+        e.stopPropagation();
+        e.preventDefault();
     }
 
     settingsButton.onclick = function (e) {
+        lastTab = 1;
         showSettings();
-        settingsButton.style.zIndex = "15001";
-        editButton.style.zIndex = "15000";
+        showTabs(1);
+        e.stopPropagation();
+        e.preventDefault();
     }
 
     editButton.onclick = function (e) {
+        lastTab = 2;
         showEdit();
         settingsButton.style.zIndex = "15000";
-        editButton.style.zIndex = "15001";
+        showTabs(2);
+        e.stopPropagation();
+        e.preventDefault();
     }
+
+    boardButton.onclick = function (e) {
+        lastTab = 3;
+        showSettings2();
+        showTabs(3);
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    closeButton.onclick = function (e) {
+        showTabs(0);
+    }
+
     if (testing) setTimeout(hideSplash, 500);
 
     function hideSplash() {
         splash.hidden = true;
+        settingsSplash.hidden = true;
+        startSplash.hidden = true;
     }
 
     document.documentElement.style.overflow = 'hidden'; // hide scroll barsfirefox, chrome
@@ -127,8 +183,150 @@ window.onload = () => {
     initLanguages();
 }
 
+window.addEventListener("orientationchange", function () {
+    windowResized();
+}, false);
 
 function windowResized() {
+    smallPortrait = (windowHeight > windowWidth);
+
+    if (smallPortrait) {
+        closeButton.style.left = "1vw";
+        closeButton.style.width = "12vw";
+        settingsButton.style.left = "9vw";
+        settingsButton.style.width = "14vw";
+        boardButton.style.left = "22vw";
+        boardButton.style.width = "14vw";
+        editButton.style.left = "35vw";
+        editButton.style.width = "14vw";
+        buttonPanel.style.left = "0vw";
+        buttonPanel.style.width = "100vw";
+        titleLbl.style.width = "99vw";
+        buttonNoLbl.style.width = "37.14vw";
+        buttonNoLbl.style.left = "60vw";
+        lblText.style.width = "31.4vw";
+        lblText.style.left = "3vw";
+        lblVocal.style.width = "31.4vw";
+        lblVocal.style.left = "3vw";
+        lblLink.style.width = "31.4vw";
+        lblLink.style.left = "3vw";
+        txtText.style.width = "60vw";
+        txtText.style.left = "34.3vw";
+        txtVocal.style.width = "60vw";
+        txtVocal.style.left = "34.3vw";
+        txtLink.style.width = "61.5vw";
+        txtLink.style.left = "34.3vw";
+        lblInstant.style.width = "83vw";
+        lblInstant.style.left = "11.4vw";
+        upArrow.style.width = "17.14vw";
+        upArrow.style.left = "70vw";
+        downArrow.style.width = "17.14vw";
+        downArrow.style.left = "70vw";
+        leftArrow.style.width = "17.14vw";
+        leftArrow.style.left = "60vw";
+        rightArrow.style.width = "17.14vw";
+        rightArrow.style.left = "80vw";
+        instantMsg.style.width = "5.7vw";
+        instantMsg.style.left = "1.43vw";
+        homeChk.style.width = "5.7vw";
+        homeChk.style.left = "7.14vw";
+        backChk.style.width = "5.7vw";
+        backChk.style.left = "30vw";
+        clearChk.style.width = "5.7vw";
+        clearChk.style.left = "50vw";
+        speakChk.style.width = "5.7vw";
+        speakChk.style.left = "75.7vw";
+        btnLoadPic.style.width = "20vw";
+        btnLoadPic.style.left = "35vw";
+        btnDeletePic.style.width = "14.3vw";
+        btnDeletePic.style.left = "40vw";
+        btnPlay.style.width = "14.3vw";
+        btnPlay.style.left = "5.7vw";
+        btnRecSnd.style.width = "14.3vw";
+        btnRecSnd.style.left = "24.3vw";
+        btnStopRec.style.width = "14.3vw";
+        btnStopRec.style.left = "42.9vw";
+        btnDeleteSnd.style.width = "14.3vw";
+        btnDeleteSnd.style.left = "80vw";
+        btnLoadSnd.style.width = "14.3vw";
+        btnLoadSnd.style.left = "61.4vw";
+        btnEdgeCol.style.width = "22.8vw";
+        btnEdgeCol.style.left = "31.7vw";
+        btnFillCol.style.width = "22.8vw";
+        btnFillCol.style.left = "4.3vw";
+        imgCurrentImg.style.width = "31.4vw";
+        imgCurrentImg.style.left = "4.3vw";
+        imgUparrow.style.width = "4vw";
+        imgUparrow.style.left = "14vw";
+    } else {
+        closeButton.style.left = "1vw";
+        closeButton.style.width = "5vw";
+        settingsButton.style.left = "4.3vw";
+        settingsButton.style.width = "7vw";
+        boardButton.style.left = "11vw";
+        boardButton.style.width = "7vw";
+        editButton.style.left = "17.7vw";
+        editButton.style.width = "10vw";
+        buttonPanel.style.left = "1vw";
+        buttonPanel.style.width = "35vw";
+        titleLbl.style.width = "33vw";
+        buttonNoLbl.style.width = "13vw";
+        buttonNoLbl.style.left = "21vw";
+        lblText.style.width = "11vw";
+        lblText.style.left = "1vw";
+        lblVocal.style.width = "11vw";
+        lblVocal.style.left = "1vw";
+        lblLink.style.width = "11vw";
+        lblLink.style.left = "1vw";
+        txtText.style.width = "21.2vw";
+        txtText.style.left = "12vw";
+        txtVocal.style.width = "21.2vw";
+        txtLink.style.width = "21.2vw";
+        txtLink.style.left = "12vw";
+        txtVocal.style.left = "12vw";
+        lblInstant.style.width = "29vw";
+        lblInstant.style.left = "4vw";
+        upArrow.style.width = "6vw";
+        upArrow.style.left = "24.5vw";
+        downArrow.style.width = "6vw";
+        downArrow.style.left = "24.5vw";
+        leftArrow.style.width = "6vw";
+        leftArrow.style.left = "21vw";
+        rightArrow.style.width = "6vw";
+        rightArrow.style.left = "28vw";
+        instantMsg.style.width = "2vw";
+        instantMsg.style.left = ".5vw";
+        homeChk.style.width = "2vw";
+        homeChk.style.left = "2.5vw";
+        backChk.style.width = "2vw";
+        backChk.style.left = "10.5vw";
+        clearChk.style.width = "2vw";
+        clearChk.style.left = "17.5vw";
+        speakChk.style.width = "2vw";
+        speakChk.style.left = "26.5vw";
+        btnLoadPic.style.width = "7vw";
+        btnLoadPic.style.left = "12.25vw";
+        btnDeletePic.style.width = "5vw";
+        btnDeletePic.style.left = "14vw";
+        btnPlay.style.width = "5vw";
+        btnPlay.style.left = "2vw";
+        btnRecSnd.style.width = "5vw";
+        btnRecSnd.style.left = "8.5vw ";
+        btnStopRec.style.width = "5vw";
+        btnStopRec.style.left = "15vw";
+        btnDeleteSnd.style.width = "5vw";
+        btnDeleteSnd.style.left = "28vw";
+        btnLoadSnd.style.width = "5vw";
+        btnLoadSnd.style.left = "21.5vw";
+        btnEdgeCol.style.width = "8vw";
+        btnEdgeCol.style.left = "11.1vw";
+        btnFillCol.style.width = "8vw";
+        btnFillCol.style.left = "1.5vw";
+        imgCurrentImg.style.width = "11vw";
+        imgCurrentImg.style.left = "1.5vw";
+        imgUparrow.style.width = "1.4vw";
+        imgUparrow.style.left = "4.9vw";
+    }
     if (params.boardStyle == 'Fullscreen') // full screen
         hWindow = windowHeight;
     else // toolbar
@@ -136,17 +334,29 @@ function windowResized() {
 
     var pos = document.getElementById("body");
     resizeCanvas(windowWidth, windowHeight);
-    stepx = windowWidth / columns;
-    stepy = hWindow / rows;
+    if (smallPortrait) {
+        stepx = windowWidth / rows;
+        stepy = hWindow / columns;
+    } else {
+        stepx = windowWidth / columns;
+        stepy = hWindow / rows;
+    }
     refreshBoard++;
 
     if (params.boardStyle == 'ToolbarTop')
         offsetForBoard = windowHeight * .1;
     else
         offsetForBoard = 0;
-    try {
-        gui.width = window.innerWidth * .32;
-    } catch (e) {}
+    if (smallPortrait) {
+        gui.width = window.innerWidth;
+        gui2.width = window.innerWidth;
+    } else {
+        gui.width = window.innerWidth * .319;
+        gui2.width = window.innerWidth * .319;
+    }
+    //    try {
+    //        gui.width = window.innerWidth * .32;
+    //    } catch (e) {}
     //    cvs.canvas.clientTop = windowHeight * .1;
 }
 
@@ -162,7 +372,6 @@ function preload() {
 }
 
 function LOADJSON(s, callback) { // need this and brdLoaded as loadJSON seems to get an array, not an object
-
     var xobj = new XMLHttpRequest();
     xobj.overrideMimeType("application/json");
     xobj.open('GET', s, true); // Replace 'appDataServices' with the path to your file
@@ -210,7 +419,7 @@ function setFaceSpeed(i) {
 
 async function getZip(s) {
     //    s = "boards/zip.zip";
-    setFaceSpeed(2000)
+    setFaceSpeed(2000);
     blob = await fetch(s).then(r => r.blob());
     zip = new JSZip();
     zip.loadAsync(blob).then(function (zipinfo) {
@@ -237,6 +446,7 @@ function loadZipBoard(s) {
     if (currentZipBoard == s)
         return;
     currentZipBoard = s;
+    loadingboard = true;
     zipData.file(s).async("string").then(function (data2) {
         //        console.log(data2);
         myBoard = JSON.parse(data2);
@@ -244,6 +454,7 @@ function loadZipBoard(s) {
         // now read images
     }).catch(function (err) {
         console.error("Failed to open file:", err);
+        loadingboard = false;
     })
 }
 
@@ -258,6 +469,9 @@ var re = /(?:\.([^.]+))?$/;
 var counter;
 async function jsonLoaded() {
     gotGIF = false;
+    setFaceSpeed(1000);
+    loadingBoard = true;
+    imgs.length = 0;
     //    toConvert = [];
     try {
         for (i = 0; i < myBoard.images.length; i++) {
@@ -298,24 +512,32 @@ async function jsonLoaded() {
         }
         rows = myBoard.grid.rows;
         columns = myBoard.grid.columns;
+
         refreshBoard++;
         //imgs[0] = null
         setTimeout(function () {
-            setFaceSpeed(80);
+            setFaceSpeed(0);
+            loadingBoard = false;
         }, 500);
 
     } catch (error) {
         for (i = 0; i < myBoard.images.length; i++) {
             imgs[i] = null;
         }
+        loadingBoard = false;
     }
 
     setTimeout(windowResized, 100);
 
     function imageLoaded() {
+        clearTimeout(tmrLoad);
+        tmrLoad = setTimeout(function () {
+            loadingBoard = false;
+        }, 50);
         refreshBoard++;
     }
 }
+var tmrLoad = null;
 
 function makeTransparent() {
     return;
@@ -355,17 +577,28 @@ function setup() {
 
 var busy = false;
 
+var loadingBoard = true;
+
 function draw() {
     //    if (!started)
     //        return;
-    if (busy) return;
+    //    loadingboard = false;
+
+    if (params.highContrast)
+        background(32);
+    else
+        background(params.backgroundColour);
+    if (loadingBoard)
+        return;
+    if (busy)
+        return;
     busy = true;
     //    if (gotGIF)
     //    refreshBoard = 1;
     //    if (refreshBoard > 0) {
     //        refreshBoard--;
     try {
-        clear();
+        //        clear();
         if (params.highContrast)
             background(32);
         else
@@ -386,11 +619,17 @@ function draw() {
         }
         textSize(stepy / 10);
     } catch (err) {}
-
     for (i = 0; i < rows; i++)
         for (j = 0; j < columns; j++) {
             try {
-                drawGrid(i, j, myBoard.grid.order[i][j]);
+                //                if (loadingBoard) {
+                //                    busy = false;
+                //                    return;
+                // 
+                if (smallPortrait) {
+                    drawGrid(j, i, myBoard.grid.order[i][j]);
+                } else
+                    drawGrid(i, j, myBoard.grid.order[i][j]);
             } catch (err) {}
         }
     //    }
@@ -402,14 +641,20 @@ function drawGrid(i, j, btnId) {
     //    btnOrder[i * columns + j] = btnIndex;
     if (btnIndex >= 0) {
         drawButton(i, j, btnIndex);
-    } else
+    } else {
         drawButton(i, j, -1);
+    }
 }
 
 function drawButton(i, j, btnIndex) {
     try {
         var offset = 0; // offset and hightlight current button
         var imgIndex = -1;
+        var nullImage = false;
+        if (btnIndex >= 0) { // in case I've deleted image and set to null
+            if (myBoard.buttons[btnIndex].image_id == null)
+                nullImage = true;
+        }
         if (btnIndex >= 0) {
             imgIndex = imageIndexFromId(myBoard.buttons[btnIndex].image_id);
             if (myBoard.buttons[btnIndex].border_color == null)
@@ -429,7 +674,7 @@ function drawButton(i, j, btnIndex) {
                 fill(params.backgroundColour)
             rect(j * stepx, offsetForBoard + i * stepy, stepx, stepy);
         }
-        if (imgIndex >= 0) {
+        if (btnIndex >= 0) {
             if (myBoard.buttons[btnIndex].hasOwnProperty('border_color')) {
                 if (offset > 0) {
                     if (params.highContrast)
@@ -454,7 +699,7 @@ function drawButton(i, j, btnIndex) {
                         if (c.isDark())
                             fill(c.lighten(10).toRgbString());
                         else
-                            fill(c.darken(12).toRgbString());
+                            fill(c.darken(10).toRgbString());
 
                     } else
                         fill(myBoard.buttons[btnIndex].background_color)
@@ -476,9 +721,15 @@ function drawButton(i, j, btnIndex) {
                     yShrink = stepy / 10;
                     break;
             }
-            if (myBoard.buttons[btnIndex].hasOwnProperty('load_board'))
+            if (myBoard.buttons[btnIndex].hasOwnProperty('load_board')) {
+                if (myBoard.buttons[btnIndex].load_board.path != "")
+                    rect(stepx / 40 + j * stepx + xShrink, stepy / 40 + i * stepy + offsetForBoard + yShrink, stepx * .95 - 2 * xShrink, stepy * .95 - 2 * yShrink, 0, stepx / 8, 0, 0);
+                else
+                    rect(stepx / 40 + j * stepx + xShrink, stepy / 40 + i * stepy + offsetForBoard + yShrink, stepx * .95 - xShrink * 2, stepy * .95 - 2 * yShrink);
+            } else
+            if (myBoard.buttons[btnIndex].label == "Top Page") {
                 rect(stepx / 40 + j * stepx + xShrink, stepy / 40 + i * stepy + offsetForBoard + yShrink, stepx * .95 - 2 * xShrink, stepy * .95 - 2 * yShrink, 0, stepx / 8, 0, 0);
-            else
+            } else
                 rect(stepx / 40 + j * stepx + xShrink, stepy / 40 + i * stepy + offsetForBoard + yShrink, stepx * .95 - xShrink * 2, stepy * .95 - 2 * yShrink);
             textSize(stepy / 10);
             var txt;
@@ -577,9 +828,16 @@ function soundIndexFromId(sndId) {
 var snd = -1;
 var imageObj = new Image();
 
-function justSelected(x, y) {
+function justSelected(x1, y1) {
+    var x = x1;
+    var y = y1;
+    if (smallPortrait) {
+        x = y1;
+        y = x1;
+    }
     var txt = "";
     var tts = true;
+    var instant = false;
     try {
         if (y == rows) {
             switch (x) {
@@ -599,6 +857,7 @@ function justSelected(x, y) {
             return;
         }
         var btnId = myBoard.grid.order[y][x];
+
         if (btnId == null) {
             return;
         }
@@ -607,27 +866,35 @@ function justSelected(x, y) {
         if (myBoard.buttons[btnIndex].hasOwnProperty('actions')) {
             var act = myBoard.buttons[btnIndex].actions;
             if (act.includes(":home")) {
-                goHome()
+                goHome();
+                instant = true;
             }
             if (act.includes(":speak")) {
                 doSpeak();
+                instant = true;
             }
             if (act.includes(":clear")) {
                 doClear();
+                instant = true;
             }
             if (act.includes(":backspace")) {
                 doBackspace();
+                instant = true;
             }
         } else if (myBoard.buttons[btnIndex].hasOwnProperty('action')) {
             var act = myBoard.buttons[btnIndex].action;
             if (act.includes(":home")) {
-                goHome()
+                goHome();
+                instant = true;
             } else if (act.includes(":speak")) {
                 doSpeak();
+                instant = true;
             } else if (act.includes(":clear")) {
                 doClear();
+                instant = true;
             } else if (act.includes(":backspace")) {
                 doBackspace();
+                instant = true;
             }
         }
 
@@ -673,42 +940,45 @@ function justSelected(x, y) {
 
             //       speech.speak("load board");
         } else { // add info to message area
-            var instant = false;
-            if (myBoard.buttons[btnIndex].hasOwnProperty('ext_instant')) {
-                instant = myBoard.buttons[btnIndex].ext_instant
-            }
-
-            if (!instant) {
-                if (buttonCount >= 10) {
-                    ctx.fillStyle = "#FFFFFF";
-                    buttonCount = 0;
-                    for (j = 0; j < 10; j++) {
-                        ctx.fillRect(j * 100, 0, 100, 150);
-                        btnsLabels[j].textContent = "";
-                    }
+            if (myBoard.buttons[btnIndex].label == "Top Page") {
+                goHome();
+            } else {
+                if (myBoard.buttons[btnIndex].hasOwnProperty('ext_instant')) {
+                    instant = myBoard.buttons[btnIndex].ext_instant
                 }
 
-                btnsLabels[buttonCount].textContent = myBoard.buttons[btnIndex].label;
-                var imgIndex = imageIndexFromId(myBoard.buttons[btnIndex].image_id);
-                ctx.fillStyle = "#FFFFFF";
-                ctx.fillRect(buttonCount * 100, 0, 100, 150);
-                ctx.drawImage(imgs[imgIndex].canvas, 2 + buttonCount * 100, 2, 96, 120);
-                buttonCount++;
+                if (!instant) {
+                    if (buttonCount >= 10) {
+                        ctx.fillStyle = "#FFFFFF";
+                        buttonCount = 0;
+                        for (j = 0; j < 10; j++) {
+                            ctx.fillRect(j * 100, 0, 100, 150);
+                            btnsLabels[j].textContent = "";
+                        }
+                    }
+
+                    btnsLabels[buttonCount].textContent = myBoard.buttons[btnIndex].label;
+                    var imgIndex = imageIndexFromId(myBoard.buttons[btnIndex].image_id);
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.fillRect(buttonCount * 100, 0, 100, 150);
+                    ctx.drawImage(imgs[imgIndex].canvas, 2 + buttonCount * 100, 2, 96, 120);
+                    buttonCount++;
+                }
+                if (tts && params.vocaliseEachButton) // vocaliseLinkButtons
+                    speech.speak(txt);
+                if (homeBoardName != currentBoardName && params.autoReturnToHome)
+                    if (boardDiskFormat == 2)
+                        loadZipBoard(homeBoardName);
+                    else
+                        myBoard = loadJSON(homeBoardName, jsonLoaded);
             }
-            if (tts && params.vocaliseEachButton) // vocaliseLinkButtons
-                speech.speak(txt);
-            if (homeBoardName != currentBoardName && params.autoReturnToHome)
-                if (boardDiskFormat == 2)
-                    loadZipBoard(homeBoardName);
-                else
-                    myBoard = loadJSON(homeBoardName, jsonLoaded);
         }
         if (params.boardStyle == 'Fullscreen') // don't build up dispay if no toolbar
             doClear();
     } catch (e) {}
 
-    function soundLoaded() {
-        snd.play();
-    }
+}
 
+function soundLoaded() {
+    snd.play();
 }

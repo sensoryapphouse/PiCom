@@ -97,7 +97,7 @@ function setUpToolbar() {
         goHome();
     };
     homeBtn.onmouseover = function () {
-        if (!buttonPanel.hidden)
+        if (!settingsButton.hidden)
             return;
         toolbarHighlightItem(0);
     };
@@ -387,7 +387,7 @@ function setUpToolbar() {
     backspace.style.backgroundSize = "7vw 9vh";
     backspace.tabIndex = -1;
     backspace.onmouseover = function () {
-        if (!buttonPanel.hidden)
+        if (!settingsButton.hidden)
             return;
         toolbarHighlightItem(2);
     };
@@ -412,7 +412,7 @@ function setUpToolbar() {
     clearDisplay.style.backgroundSize = "7vw 9vh";
     clearDisplay.tabIndex = -1;
     clearDisplay.onmouseover = function () {
-        if (!buttonPanel.hidden)
+        if (!settingsButton.hidden)
             return;
         toolbarHighlightItem(3);
     };
@@ -440,7 +440,7 @@ function setUpToolbar() {
         doSpeak();
     };
     editArea.onmouseover = function () {
-        if (!buttonPanel.hidden)
+        if (!settingsButton.hidden)
             return;
         toolbarHighlightItem(1);
     };
@@ -479,7 +479,10 @@ function setUpToolbar() {
 }
 
 function toolbarHighlightItem(i) {
-    currentY = rows;
+    if (smallPortrait)
+        currentY = columns;
+    else
+        currentY = rows;
     currentX = i;
     highlightRow = -1;
     backgroundButton.style.backgroundColor = params.backgroundColour;

@@ -1,0 +1,165 @@
+.tooltip {
+    background-color: #333;
+    color: #ddd;
+    padding: 10px 15px;
+    visibility: hidden;
+    opacity: 0;
+    z-index: 8000;
+    border-radius: 2px;
+    transition: visibility 0s .35s, opacity .35s, transform .35s
+}
+
+/* separation */
+.tooltip.position-up {
+    margin-top: -10px
+}
+
+.tooltip.position-down {
+    margin-top: 10px
+}
+
+.tooltip.position-left {
+    margin-left: -10px
+}
+
+.tooltip.position-right {
+    margin-left: -10px
+}
+
+/* animation */
+.tooltip.visible {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s
+}
+
+/* transition-delay fixes fade-in/fade-out in some browsers */
+.tooltip.position-up {
+    transform: translateY(-5px)
+}
+
+.tooltip.position-up.visible {
+    transform: translateY(0px)
+}
+
+.tooltip.position-down {
+    transform: translateY(+5px)
+}
+
+.tooltip.position-down.visible {
+    transform: translateY(0px)
+}
+
+.tooltip.position-left {
+    transform: translateX(-5px)
+}
+
+.tooltip.position-left.visible {
+    transform: translateX(0px)
+}
+
+.tooltip.position-right {
+    transform: translateX(5px)
+}
+
+.tooltip.position-right.visible {
+    transform: translateX(0px)
+}
+
+
+/* arrow */
+.arrow {
+    width: 0;
+    height: 0;
+    position: absolute
+}
+
+.tooltip.position-down .arrow {
+    top: -6px;
+    border-bottom: 6px solid #333;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent
+}
+
+.tooltip.position-up .arrow {
+    bottom: -6px;
+    border-top: 6px solid #333;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent
+}
+
+.tooltip.position-left .arrow {
+    right: -6px;
+    border-left: 6px solid #333;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent
+}
+
+.tooltip.position-right .arrow {
+    left: -6px;
+    border-right: 6px solid #333;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent
+}
+
+.tooltip.position-vertical.align-left .arrow {
+    left: 8px
+}
+
+.tooltip.position-vertical.align-center .arrow {
+    left: 50%;
+    margin-left: -4px
+}
+
+.tooltip.position-vertical.align-right .arrow {
+    right: 4px
+}
+
+.tooltip.position-horizontal.align-top .arrow {
+    top: 4px
+}
+
+.tooltip.position-horizontal.align-center .arrow {
+    top: 50%;
+    margin-top: -4px
+}
+
+.tooltip.position-horizontal.align-bottom .arrow {
+    bottom: 4px
+}
+
+
+/* custom tooltip */
+.tooltip.green {
+    border-radius: 8px;
+    background-color: #AED7D7;
+    color: black;
+}
+
+.tooltip.green.position-down .arrow {
+    top: -15px;
+    border-bottom: 15px solid #AED7D7;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent
+}
+
+.tooltip.green.position-up .arrow {
+    bottom: -15px;
+    border-top: 15px solid #AED7D7;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent
+}
+
+.tooltip.green.position-left .arrow {
+    right: -20px;
+    border-left: 20px solid #AED7D7;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent
+}
+
+.tooltip.green.position-right .arrow {
+    left: -20px;
+    border-right: 20px solid #AED7D7;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent
+}

@@ -1,0 +1,122 @@
+{
+ "format": "open-board-0.1",
+ "id": "PiCom Board",
+ "locale": "en",
+ "name": "PiCom Board",
+ "buttons": [
+  {
+   "id": "00",
+   "image_id": null,
+   "label": "00",
+   "border_color": "rgb(0,0,0)",
+   "background_color": "rgb(255,255,255)"
+  },
+  {
+   "id": "10",
+   "image_id": null,
+   "label": "10",
+   "border_color": "rgb(0,0,0)",
+   "background_color": "rgb(255,255,255)"
+  },
+  {
+   "id": "20",
+   "image_id": null,
+   "label": "20",
+   "border_color": "rgb(0,0,0)",
+   "background_color": "rgb(255,255,255)"
+  },
+  {
+   "id": "30",
+   "image_id": null,
+   "label": "30",
+   "border_color": "rgb(0,0,0)",
+   "background_color": "rgb(255,255,255)"
+  },
+  {
+   "id": "01",
+   "image_id": null,
+   "label": "01",
+   "border_color": "rgb(0,0,0)",
+   "background_color": "rgb(255,255,255)"
+  },
+  {
+   "id": "11",
+   "image_id": null,
+   "label": "11",
+   "border_color": "rgb(0,0,0)",
+   "background_color": "rgb(255,255,255)"
+  },
+  {
+   "id": "21",
+   "image_id": null,
+   "label": "21",
+   "border_color": "rgb(0,0,0)",
+   "background_color": "rgb(255,255,255)"
+  },
+  {
+   "id": "31",
+   "image_id": null,
+   "label": "31",
+   "border_color": "rgb(0,0,0)",
+   "background_color": "rgb(255,255,255)"
+  },
+  {
+   "id": "02",
+   "image_id": null,
+   "label": "02",
+   "border_color": "rgb(0,0,0)",
+   "background_color": "rgb(255,255,255)"
+  },
+  {
+   "id": "12",
+   "image_id": null,
+   "label": "12",
+   "border_color": "rgb(0,0,0)",
+   "background_color": "rgb(255,255,255)"
+  },
+  {
+   "id": "22",
+   "image_id": null,
+   "label": "22",
+   "border_color": "rgb(0,0,0)",
+   "background_color": "rgb(255,255,255)"
+  },
+  {
+   "id": "32",
+   "image_id": null,
+   "label": "32",
+   "border_color": "rgb(0,0,0)",
+   "background_color": "rgb(255,255,255)"
+  }
+ ],
+ "grid": {
+  "rows": 3,
+  "columns": 4,
+  "order": [
+   [
+    "00",
+    "10",
+    "20",
+    "30"
+   ],
+   [
+    "01",
+    "11",
+    "21",
+    "31"
+   ],
+   [
+    "02",
+    "12",
+    "22",
+    "32"
+   ]
+  ]
+ },
+ "images": [
+  {
+   "id": "blank",
+   "url": ""
+  }
+ ]
+}

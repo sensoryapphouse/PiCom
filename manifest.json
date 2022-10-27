@@ -1,0 +1,33 @@
+{
+    "name": "PiCom",
+    "short_name": "PiCom",
+    "icons": [{
+        "src": "images/Icon128.png",
+        "sizes": "128x128",
+        "type": "image/png"
+    }, {
+        "src": "images/Icon144.png",
+        "sizes": "144x144",
+        "type": "image/png"
+    }, {
+        "src": "images/Icon152.png",
+        "sizes": "152x152",
+        "type": "image/png"
+    }, {
+        "src": "images/Icon192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+    }, {
+        "src": "images/Icon256.png",
+        "sizes": "256x256",
+        "type": "image/png"
+    }, {
+        "src": "images/Icon512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+    }],
+    "lang": "en-US",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "orientation": "landscape"
+}

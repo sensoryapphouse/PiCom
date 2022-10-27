@@ -34,25 +34,59 @@ splash {
     -webkit-app-region: no-drag;
 }
 
-/*
-hamMenu {
+settingsSplash {
     position: absolute;
-    top: 1vh;
-    left: 1vh;
-    width: 7vh;
-    height: 7vh;
-    border-radius: 5vw;
-    border: none;
-    outline: none;
+    top: 0vw;
+    right: 0vw;
+    width: 7vw;
+    height: 7vw;
+    border-radius: 3.5vw;
+    border: outset;
+    color: black;
     cursor: pointer;
-    background: url(images/menu.png);
-    background-size: 7vh 7vh;
-    background-color: transparent;
-    opacity: 1.0;
-    z-index: 10001;
+    background-color: rgb(240, 240, 240);
+    background-image: url(images/settings.png);
+    background-size: 7vw 7vw;
+    background-position: left top;
+    background-repeat: no-repeat;
+    z-index: 16002;
+    opacity: .8;
     -webkit-app-region: no-drag;
 }
-*/
+
+settingsSplash:hover {
+    opacity: 1.0;
+}
+
+settingsSplash:active {
+    opacity: 0.2;
+}
+
+startSplash {
+    position: absolute;
+    bottom: 2vw;
+    right: 2vw;
+    width: 20vw;
+    height: 20vw;
+    border-radius: 10vw;
+    border: outset;
+    color: black;
+    cursor: pointer;
+    background-color: rgb(240, 240, 240);
+    background-image: url(images/start.png);
+    background-size: 20vw 20vw;
+    z-index: 10002;
+    opacity: .8;
+    -webkit-app-region: no-drag;
+}
+
+startSplash:hover {
+    opacity: 1.0;
+}
+
+startSplash:active {
+    opacity: 0.2;
+}
 
 #layoutViewport {
     position: fixed;
@@ -78,11 +112,21 @@ hamMenu {
     position: absolute;
     top: 0vh;
     left: 0vw;
-    z-index: 16001;
+    z-index: 7001;
     transform: scale(1.1);
 }
 
 #gui {
+    position: absolute;
+    top: 4vh;
+    left: .9vw;
+    height: 80vh;
+    opacity: .95;
+    border: outset;
+    border: none;
+}
+
+#gui2 {
     position: absolute;
     top: 4vh;
     left: .9vw;
@@ -99,49 +143,117 @@ buttonPanel {
     width: 35vw;
     height: 80vh;
     border-radius: 0vh;
-    border: outset;
+    border: none;
     outline: none;
     background: url(images/panel.png);
     background-size: 100% 100%;
     opacity: .95;
-    z-index: 16000;
+    z-index: 7000;
+    -webkit-app-region: no-drag;
+}
+
+closeButton {
+    position: absolute;
+    top: 0vh;
+    left: 1vw;
+    width: 5vw;
+    height: 5vh;
+    border-radius: 0vh;
+    border: outset;
+    color: black;
+    cursor: pointer;
+    background-color: rgb(240, 240, 240);
+    background-image: url(images/close.png);
+    background-size: 4.5vh 4.5vh;
+    background-position: left top;
+    background-repeat: no-repeat;
+    line-height: 3vh;
+    text-align: center;
+    font-size: 3vh;
+    opacity: 0.95;
+    z-index: 5000;
     -webkit-app-region: no-drag;
 }
 
 editButton {
     position: absolute;
     top: 0vh;
-    left: 5.3vw;
-    width: 8vw;
-    height: 3vh;
+    left: 17.7vw;
+    width: 10vw;
+    height: 5vh;
     border-radius: 1vh;
-    border: outset;
-    color: white;
+    border: groove;
+    color: black;
     cursor: pointer;
-    background-color: rgb(107, 106, 150);
-    padding: 1vh;
+    background-color: rgb(240, 240, 240);
+    background-image: url(images/button.png);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 4.5vh 4.5vh;
+    background-position: center top;
     line-height: 3vh;
-    text-align: center;
+    text-align: center top;
     font-size: 3vh;
     opacity: 0.95;
-    z-index: 15000;
+    z-index: 7000;
     -webkit-app-region: no-drag;
 }
 
 settings {
     position: absolute;
     top: 0vh;
-    left: 1.3vw;
-    width: 5vw;
+    left: 4.3vw;
+    width: 7vw;
     height: 5vh;
     border-radius: 1vh;
-    border: outset;
+    border: groove;
     color: white;
     cursor: pointer;
-    background-color: rgb(107, 106, 150);
+    background-color: rgb(240, 240, 240);
     background-image: url(images/settings.png);
-    background-size: 5vw 5vh;
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: 4vh 4vh;
     opacity: 0.95;
-    z-index: 15000;
+    z-index: 7000;
+    -webkit-app-region: no-drag;
+}
+
+boardButton {
+    position: absolute;
+    top: 0vh;
+    left: 11vw;
+    width: 7vw;
+    height: 5vh;
+    border-radius: 1vh;
+    border: groove;
+    color: white;
+    cursor: pointer;
+    background-color: rgb(240, 240, 240);
+    background-image: url(images/board.png);
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: 6vh 4.5vh;
+    opacity: 0.95;
+    z-index: 7000;
+    -webkit-app-region: no-drag;
+}
+
+crosshairs {
+    position: absolute;
+    top: 45vw;
+    left: 45vh;
+    width: 5vw;
+    height: 10vh;
+    border-radius: 0vh;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    background: url(images/crosshairs.png);
+    background-size: 5vw 10vh;
+    background-color: transparent;
+    opacity: 1;
+    z-index: 1700;
+    pointer-events: none;
     -webkit-app-region: no-drag;
 }

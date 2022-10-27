@@ -9,6 +9,76 @@ var smile = false;
 var mouthOpen = false;
 var eyebrows = false;
 
+var mouseX = 0;
+var mouseY = 0;
+
+function MoveMouse(xm, ym) {
+    //    console.log('Moving: ', xm, ym);
+    if (abs(xm) < .75)
+        xm = 0;
+    if (abs(ym) < .5)
+        ym = 0;
+    if (xm == 0 && ym == 0 && switchInput == strHover) { // hovering
+        if (tmrHover == null)
+            tmrHover = setTimeout(function () {
+                doClick(0);
+                refreshBoard++;
+            }, params.acceptanceDelayHover * 1000);
+        return; //no movement
+    } else {
+        clearTimeout(tmrHover);
+        tmrHover == null;
+    }
+    crosshairs.hidden = false;
+    xm *= (params.speed + 1) * .75;
+    ym *= (params.speed + 1);
+
+    try {
+        mouseX = crosshairs.offsetLeft;
+        mouseY = crosshairs.offsetTop;
+
+        mouseX += xm;
+        mouseY += ym;
+        if (mouseX < 10)
+            mouseX = 10;
+        if (mouseY < 10)
+            mouseY = 10;
+        if (mouseX >= window.innerWidth - 10)
+            mouseX = window.innerWidth - 10;
+        if (mouseY >= window.innerHeight - 10)
+            mouseY = window.innerHeight - 10;
+        //        console.log('MoveTo: ', mouseX, mouseY);
+        crosshairs.style.left = mouseX + "px";
+        crosshairs.style.top = mouseY + "px";
+        const evt = {
+            x: mouseX,
+            y: mouseY
+        };
+        mouseMoved(evt);
+        if (currentY == rows) {
+            if (mouseX >= homeBtn.offsetLeft && mouseX <= homeBtn.offsetLeft + homeBtn.offsetWidth) {
+                currentX = 0;
+                toolbarHighlightItem(currentX);
+            } else if (mouseX >= editArea.offsetLeft && mouseX <= editArea.offsetLeft + editArea.offsetWidth) {
+                currentX = 1;
+                toolbarHighlightItem(currentX);
+            } else if (mouseX >= backspace.offsetLeft && mouseX <= backspace.offsetLeft + backspace.offsetWidth) {
+                currentX = 2;
+                toolbarHighlightItem(currentX);
+            } else if (mouseX >= clearDisplay.offsetLeft && mouseX <= clearDisplay.offsetLeft + clearDisplay.offsetWidth) {
+                currentX = 3;
+                toolbarHighlightItem(currentX);
+            } else {
+                currentX = -1;
+                removeToolbarHighlight();
+            }
+        } else
+            removeToolbarHighlight();
+    } catch {}
+}
+
+
+
 function initialiseFace() {
     if (faceInitialised)
         return;
@@ -37,6 +107,7 @@ var JeelizWebojiSVGHelper = (function () {
     function getFace() { // use gamepad joystick code
         if (!splash.hidden)
             return;
+        return;
         switch (faceDirection) {
             case 0: // centred
                 JoystickMoveTo(0, 0, 0, 0);
@@ -77,7 +148,7 @@ var JeelizWebojiSVGHelper = (function () {
             _rotation = JEELIZFACEEXPRESSIONS.get_rotationStabilized();
         }
         JEELIZFACEEXPRESSIONS.set_morphUpdateCallback(onMorphUpdate);
-        JEELIZFACEEXPRESSIONS.set_animateDelay(80);
+        JEELIZFACEEXPRESSIONS.set_animateDelay(0);
         setTimeout(function () {
             getFace();
         }, 100);
@@ -119,33 +190,35 @@ var JeelizWebojiSVGHelper = (function () {
             previousExpression = gotExpression;
         }
 
-        console.log(ry);
+        //        console.log(ry + " " + rx);
 
-        if (rx < 0)
-            faceDirection = 1; // up
-        else if (rx > .2)
-            faceDirection = 2; // down
-        else if (ry < -.3)
-            faceDirection = 3; // left
-        else if (ry > .3)
-            faceDirection = 4; // right
-        else
-            faceDirection = 0; // centre
+        MoveMouse(ry * 3, (rx * 5) - .5);
 
-        if (switchInput == strHover) {
-            if (faceDirection != lastFaceDirection) {
-                if (faceDirection == 0)
-                    clearTimeout(tmrHover);
-                else {
-                    tmrHover = setTimeout(function () {
-                        doClick(0);
-                        refreshBoard++;
-                    }, params.acceptanceDelayHover * 1000);
-                }
-            }
-        }
-        //        console.log(s + faceDirection);
-        lastFaceDirection = faceDirection;
+        //        if (rx < 0)
+        //            faceDirection = 1; // up
+        //        else if (rx > .2)
+        //            faceDirection = 2; // down
+        //        else if (ry < -.3)
+        //            faceDirection = 3; // left
+        //        else if (ry > .3)
+        //            faceDirection = 4; // right
+        //        else
+        //            faceDirection = 0; // centre
+        //
+        //        if (switchInput == strHover) {
+        //            if (faceDirection != lastFaceDirection) {
+        //                if (faceDirection == 0)
+        //                    clearTimeout(tmrHover);
+        //                else {
+        //                    tmrHover = setTimeout(function () {
+        //                        doClick(0);
+        //                        refreshBoard++;
+        //                    }, params.acceptanceDelayHover * 1000);
+        //                }
+        //            }
+        //        }
+        //        //        console.log(s + faceDirection);
+        //        lastFaceDirection = faceDirection;
         if (_rotationCallback) {
             _rotationCallback(_rotation);
         }

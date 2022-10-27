@@ -1,6 +1,6 @@
 {
     "Description": "Local boards for PiCom",
-    "count": 8,
+    "count": 9,
     "boards": {
         "0": "communikate-20.obz",
         "1": "communikate-12.obz",
@@ -9,6 +9,7 @@
         "4": "quick-core-60.obz",
         "5": "quick-core-112.obz",
         "6": "yes-no.obf",
-        "7": "feelings.obf"
+        "7": "feelings.obf",
+        "8": "blank.obz"
     }
 }

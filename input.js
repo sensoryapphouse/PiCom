@@ -6,23 +6,29 @@ var tchX = 0;
 var tchY = 0;
 var tchCount;
 
+var multiTouch = false;
+
 function touchStarted(event) {
     console.log("Touch started");
     if (event.touches.length > 1) {
-        if (event.touches[0].clientX < windowWidth * .25 && event.touches[0].clientY < windowHeight * .25) {
+        multiTouch = true;
+        if (event.touches[0].pageX < windowWidth * .25 && event.touches[0].pageY < windowHeight * .25) {
             showGUI++;
             console.log("Two fingers: ", showGUI)
             if (showGUI > 2) {
-                buttonPanel.hidden = true; // hide button editor if showing
-                gui.show();
-                guiVisible = true;
-                showGUI++;
+                if (lastTab == 1) // open last tab used
+                    showSettings();
+                else
+                    showEdit();
+                showGUI = 0;
             }
             return;
         } else
             showGUI = 0;
         return;
     }
+    else
+        multiTouch = false;
     var element = document.elementsFromPoint(event.touches[0].pageX, event.touches[0].pageY);
     tchCount = element.length;
     if (tchCount <= 3) {
@@ -33,8 +39,8 @@ function touchStarted(event) {
     }
 
     //   console.log(element.length);
-    tchX = event.x = event.touches[0].clientX;
-    tchY = event.y = event.touches[0].clientY;
+    tchX = event.pageX = event.touches[0].pageX;
+    tchY = event.pageY = event.touches[0].pageY;
     mousePressed(event);
     //    return false;
 }
@@ -50,8 +56,8 @@ function touchMoved(event) {
         } catch (e) {}
     }
     //    event.preventDefault();
-    tchX = event.x = event.touches[0].clientX;
-    tchY = event.y = event.touches[0].clientY;
+    tchX = event.pageX = event.touches[0].pageX;
+    tchY = event.pageY = event.touches[0].pageY;
     mouseMoved(event);
     console.log("Touch: ", currentX, currentY);
     //    return false;
@@ -59,7 +65,11 @@ function touchMoved(event) {
 
 function touchEnded(event) {
     console.log("Touch ended");
-    if (event.touches.length > 1) {
+    if (event.touches.length > 1 || multiTouch) {
+        return;
+    }
+    if (event.touches.length == 0 && multiTouch) {
+        multiTouch = false;
         return;
     }
     if (tchCount <= 3) {
@@ -68,8 +78,8 @@ function touchEnded(event) {
             event.preventDefault();
         } catch (e) {}
     }
-    event.x = tchX;
-    event.y = tchY;
+    event.pageX = tchX;
+    event.pageY = tchY;
     mouseReleased(event);
     //    return false;
 }
@@ -77,7 +87,7 @@ function touchEnded(event) {
 function mousePressed(event) {
     if (!splash.hidden)
         return;
-    if (event.button == 2 || !buttonPanel.hidden)
+    if (event.button == 2 || !settingsButton.hidden)
         return;
     try {
         event.stopPropagation();
@@ -111,7 +121,7 @@ function mouseReleased(event) {
     if (!splash.hidden)
         return;
     clearTimeout(tmrAccept);
-    if (event.button == 2 || !buttonPanel.hidden)
+    if (event.button == 2 || !settingsButton.hidden)
         return;
     switch (params.inputMethod) {
         case 'Touch/Mouse':
@@ -135,6 +145,8 @@ function mouseReleased(event) {
 function mseEvent(event) {
     if (guiVisible)
         return;
+    console.log(event.pageX);
+
     if (params.inputMethod == "MouseWheel") {
         if (params.mouseWheel == "Step")
             doClick(0);
@@ -161,13 +173,24 @@ function mseEvent(event) {
     var xIndex;
     var yIndex;
     if (params.boardStyle == 'ToolbarTop') {
-        xIndex = map(event.x, 0, windowWidth, 0, columns);
-        yIndex = map(event.y, offsetForBoard, windowHeight, 0, rows);
+        if (smallPortrait) {
+            xIndex = floor(map(event.pageX, 0, windowWidth, 0, rows));
+            yIndex = floor(map(event.pageY, offsetForBoard, windowHeight, 0, columns));
+        } else {
+            xIndex = floor(map(event.pageX, 0, windowWidth, 0, columns));
+            yIndex = floor(map(event.pageY, offsetForBoard, windowHeight, 0, rows));
+        }
         console.log(floor(xIndex), floor(yIndex));
     } else {
-        xIndex = map(event.x, 0, windowWidth, 0, columns);
-        yIndex = map(event.y, 0, hWindow, 0, rows);
+        if (smallPortrait) {
+            xIndex = map(event.pageX, 0, windowWidth, 0, rows);
+            yIndex = map(event.pageY, 0, hWindow, 0, columns);
+        } else {
+            xIndex = map(event.pageX, 0, windowWidth, 0, columns);
+            yIndex = map(event.pageY, 0, hWindow, 0, rows);
+        }
         console.log(floor(xIndex), floor(yIndex));
+
     }
     xIndex = floor(xIndex);
     yIndex = floor(yIndex);
@@ -204,8 +227,13 @@ function mouseMoved(event) {
     if (guiVisible)
         return;
     if (params.boardStyle == 'ToolbarTop') {
-        currentX = floor(map(event.x, 0, windowWidth, 0, columns));
-        currentY = floor(map(event.y, offsetForBoard, windowHeight, 0, rows));
+        if (smallPortrait) {
+            currentX = floor(map(event.pageX, 0, windowWidth, 0, rows));
+            currentY = floor(map(event.pageY, offsetForBoard, windowHeight, 0, columns));
+        } else {
+            currentX = floor(map(event.pageX, 0, windowWidth, 0, columns));
+            currentY = floor(map(event.pageY, offsetForBoard, windowHeight, 0, rows));
+        }
         if (currentX != lastX || currentY != lastY) {
             if (tmrAccept != null) {
                 clearTimeout(tmrAccept);
@@ -218,8 +246,13 @@ function mouseMoved(event) {
             refreshBoard++;
         }
     } else {
-        currentX = floor(map(event.x, 0, windowWidth, 0, columns));
-        currentY = floor(map(event.y, 0, hWindow, 0, rows));
+        if (smallPortrait) {
+            currentX = floor(map(event.pageX, 0, windowWidth, 0, rows));
+            currentY = floor(map(event.pageY, offsetForBoard, hWindow, 0, columns));
+        } else {
+            currentX = floor(map(event.pageX, 0, windowWidth, 0, columns));
+            currentY = floor(map(event.pageY, offsetForBoard, hWindow, 0, rows));
+        }
         if (currentX != lastX || currentY != lastY) {
             clearTimeout(tmrHover);
             tmrHover = null;
@@ -236,6 +269,8 @@ function mouseMoved(event) {
                 }, params.acceptanceDelayHover * 1000);
             }
         }
+        if (currentY == rows)
+            currentX = floor(4 * currentX / columns);
     }
     lastX = currentX;
     lastY = currentY;
@@ -317,7 +352,10 @@ function keyPressed() {
                 return;
             if (keyIsDown(SHIFT)) {
                 console.log("CTRL_S");
-                showSettings();
+                if (lastTab == 1) // open last tab used
+                    showSettings();
+                else
+                    showEdit();
             }
             break;
             //        case 69: // E - edit
@@ -329,7 +367,6 @@ function keyPressed() {
         case 27: // esc
             if (!buttonPanel.hidden)
                 closeEdit();
-            gui.hide();
             guiVisible = false;
             showTabs(0);
     }
@@ -594,28 +631,55 @@ window.addEventListener('touchmove', e => {
 function moveDown() {
     currentY++;
     removeToolbarHighlight();
-    if (!buttonPanel.hidden && currentY == rows)
-        currentY = rows - 1;
-    if (currentY == rows) {
-        currentX = floor(4 * currentX / columns);
-        toolbarHighlightItem(currentX);
-    } else if (currentY == rows + 1) {
-        currentY = 0;
-        switch (currentX) {
-            case 0:
-                currentX = 0;
-                break;
-            case 1:
-                currentX = floor(columns / 2);
-                break;
-            case 2:
-                currentX = columns - 2;
-                if (currentX < 0)
-                    currentX == 0;
-                break;
-            case 3:
-                currentX = columns - 1;
-                break;
+    if (smallPortrait) {
+        if (!buttonPanel.hidden && currentY == columns)
+            currentY = columns - 1;
+        if (currentY == columns) {
+            currentX = floor(4 * currentX / rows);
+            toolbarHighlightItem(currentX);
+        } else if (currentY == columns + 1) {
+            currentY = 0;
+            switch (currentX) {
+                case 0:
+                    currentX = 0;
+                    break;
+                case 1:
+                    currentX = 1; //floor(rows / 2);
+                    break;
+                case 2:
+                    currentX = rows - 2;
+                    if (currentX < 0)
+                        currentX == 0;
+                    break;
+                case 3:
+                    currentX = rows - 1;
+                    break;
+            }
+        }
+    } else {
+        if (!buttonPanel.hidden && currentY == rows)
+            currentY = rows - 1;
+        if (currentY == rows) {
+            currentX = floor(4 * currentX / columns);
+            toolbarHighlightItem(currentX);
+        } else if (currentY == rows + 1) {
+            currentY = 0;
+            switch (currentX) {
+                case 0:
+                    currentX = 0;
+                    break;
+                case 1:
+                    currentX = floor(columns / 2);
+                    break;
+                case 2:
+                    currentX = columns - 2;
+                    if (currentX < 0)
+                        currentX == 0;
+                    break;
+                case 3:
+                    currentX = columns - 1;
+                    break;
+            }
         }
     }
     console.log(currentX, currentY);
@@ -626,28 +690,55 @@ function moveDown() {
 function moveUp() {
     removeToolbarHighlight();
     currentY--;
-    if (!buttonPanel.hidden && currentY < 0)
-        currentY = 0;
-    if (currentY < 0) {
-        currentY = rows;
-        currentX = floor(4 * currentX / columns);
-        toolbarHighlightItem(currentX);
-    } else if (currentY == rows - 1) {
-        switch (currentX) {
-            case 0:
-                currentX = 0;
-                break;
-            case 1:
-                currentX = floor(columns / 2);
-                break;
-            case 2:
-                currentX = columns - 2;
-                if (currentX < 0)
-                    currentX == 0;
-                break;
-            case 3:
-                currentX = columns - 1;
-                break;
+    if (smallPortrait) {
+        if (!buttonPanel.hidden && currentY < 0)
+            currentY = 0;
+        if (currentY < 0) {
+            currentY = columns;
+            currentX = floor(4 * currentX / rows);
+            toolbarHighlightItem(currentX);
+        } else if (currentY == columns - 1) {
+            switch (currentX) {
+                case 0:
+                    currentX = 0;
+                    break;
+                case 1:
+                    currentX = 1; // floor(rows / 2);
+                    break;
+                case 2:
+                    currentX = rows - 2;
+                    if (currentX < 0)
+                        currentX == 0;
+                    break;
+                case 3:
+                    currentX = rows - 1;
+                    break;
+            }
+        }
+    } else {
+        if (!buttonPanel.hidden && currentY < 0)
+            currentY = 0;
+        if (currentY < 0) {
+            currentY = rows;
+            currentX = floor(4 * currentX / columns);
+            toolbarHighlightItem(currentX);
+        } else if (currentY == rows - 1) {
+            switch (currentX) {
+                case 0:
+                    currentX = 0;
+                    break;
+                case 1:
+                    currentX = floor(columns / 2);
+                    break;
+                case 2:
+                    currentX = columns - 2;
+                    if (currentX < 0)
+                        currentX == 0;
+                    break;
+                case 3:
+                    currentX = columns - 1;
+                    break;
+            }
         }
     }
     console.log(currentX, currentY);
@@ -660,16 +751,30 @@ function moveLeft() {
     removeToolbarHighlight();
     refreshBoard++;
     currentX--;
-    if (!buttonPanel.hidden && currentX < 0)
-        currentX = 0;
-    if (currentX < 0) {
+    if (smallPortrait) {
+        if (!buttonPanel.hidden && currentX < 0)
+            currentX = 0;
+        if (currentX < 0) {
+            if (currentY == columns || currentY < 0) {
+                currentX = 3;
+            } else
+                currentX = rows - 1;
+        }
+        if (currentY == columns || currentY < 0) {
+            toolbarHighlightItem(currentX);
+        }
+    } else {
+        if (!buttonPanel.hidden && currentX < 0)
+            currentX = 0;
+        if (currentX < 0) {
+            if (currentY == rows) {
+                currentX = 3;
+            } else
+                currentX = columns - 1;
+        }
         if (currentY == rows) {
-            currentX = 3;
-        } else
-            currentX = columns - 1;
-    }
-    if (currentY == rows) {
-        toolbarHighlightItem(currentX);
+            toolbarHighlightItem(currentX);
+        }
     }
     console.log(currentX, currentY);
     updateEditPanel();
@@ -680,14 +785,25 @@ function moveRight() {
     removeToolbarHighlight();
     refreshBoard++;
     currentX++;
-    if (!buttonPanel.hidden && (currentX == columns))
-        currentX = columns - 1;
-    if (currentY == rows) {
-        if (currentX > 3)
+    if (smallPortrait) {
+        if (!buttonPanel.hidden && (currentX == rows))
+            currentX = rows - 1;
+        if (currentY == columns) {
+            if (currentX > 3)
+                currentX = 0;
+            toolbarHighlightItem(currentX);
+        } else if (currentX >= rows)
             currentX = 0;
-        toolbarHighlightItem(currentX);
-    } else if (currentX >= columns)
-        currentX = 0;
+    } else {
+        if (!buttonPanel.hidden && (currentX == columns))
+            currentX = columns - 1;
+        if (currentY == rows) {
+            if (currentX > 3)
+                currentX = 0;
+            toolbarHighlightItem(currentX);
+        } else if (currentX >= columns)
+            currentX = 0;
+    }
     console.log(currentX, currentY);
     updateEditPanel();
     refreshBoard++;
@@ -696,20 +812,39 @@ function moveRight() {
 function moveLeftWrap() {
     removeToolbarHighlight();
     currentX--;
-    if (currentY == rows) {
-        if (currentX < 0) {
-            currentX = columns - 1;
-            currentY = rows - 1;
-        } else
-            toolbarHighlightItem(currentX);
-    } else if (currentX < 0) {
-        if (currentY == 0) {
-            currentY = rows;
-            currentX = 3;
-            toolbarHighlightItem(currentX);
-        } else {
-            currentX = columns - 1;
-            moveUp();
+    if (smallPortrait) {
+        if (currentY == columns) {
+            if (currentX < 0) {
+                currentX = rows - 1;
+                currentY = columns - 1;
+            } else
+                toolbarHighlightItem(currentX);
+        } else if (currentX < 0) {
+            if (currentY == 0) {
+                currentY = columns;
+                currentX = 3;
+                toolbarHighlightItem(currentX);
+            } else {
+                currentX = rows - 1;
+                moveUp();
+            }
+        }
+    } else {
+        if (currentY == rows) {
+            if (currentX < 0) {
+                currentX = columns - 1;
+                currentY = rows - 1;
+            } else
+                toolbarHighlightItem(currentX);
+        } else if (currentX < 0) {
+            if (currentY == 0) {
+                currentY = rows;
+                currentX = 3;
+                toolbarHighlightItem(currentX);
+            } else {
+                currentX = columns - 1;
+                moveUp();
+            }
         }
     }
     refreshBoard++;
@@ -719,16 +854,30 @@ function moveLeftWrap() {
 function moveRightWrap() {
     removeToolbarHighlight();
     currentX++;
-    if (currentY == rows) {
-        if (currentX < 4) {
-            toolbarHighlightItem(currentX);
-        } else {
+    if (smallPortrait) {
+        if (currentY == columns) {
+            if (currentX < 4) {
+                toolbarHighlightItem(currentX);
+            } else {
+                currentX = 0;
+                moveDown();
+            }
+        } else if (currentX >= rows) {
             currentX = 0;
             moveDown();
         }
-    } else if (currentX >= columns) {
-        currentX = 0;
-        moveDown();
+    } else {
+        if (currentY == rows) {
+            if (currentX < 4) {
+                toolbarHighlightItem(currentX);
+            } else {
+                currentX = 0;
+                moveDown();
+            }
+        } else if (currentX >= columns) {
+            currentX = 0;
+            moveDown();
+        }
     }
     refreshBoard++;
 }

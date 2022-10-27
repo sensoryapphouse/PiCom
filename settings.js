@@ -4,6 +4,36 @@ var boardsJson;
 var boardNames = [];
 var switchInput = "Press"; // save "Press", "Release" or "Hover" for params.selectWith and params.selectWithSwitchScan (later is for scanning and Cursor Keys/Dpad)
 
+
+Notiflix.Confirm.init({
+    className: 'notiflix-confirm',
+    width: '300px',
+    zindex: 19003,
+    position: 'center',
+    distance: '10px',
+    backgroundColor: '#f8f8f8', //'#f8f8f8',
+    borderRadius: '25px',
+    backOverlay: true,
+    backOverlayColor: 'rgba(0,0,0,0.5)',
+    rtl: false,
+    fontFamily: 'Quicksand',
+    cssAnimation: true,
+    cssAnimationDuration: 300,
+    cssAnimationStyle: 'fade',
+    plainText: true,
+    titleColor: 'black', // #32c682',
+    titleFontSize: '24px', //'16px',
+    titleMaxLength: 34,
+    messageColor: '#1e1e1e',
+    messageFontSize: '14px',
+    messageMaxLength: 110,
+    buttonsFontSize: '15px',
+    buttonsMaxLength: 34,
+    okButtonColor: '#f8f8f8',
+    okButtonBackground: '#32c682',
+    cancelButtonColor: '#f8f8f8',
+    cancelButtonBackground: '#a9a9a9',
+});
 var defaultParams = {
     //    isFullscreen: false,
     boardName: "communikate-20.obz",
@@ -32,7 +62,10 @@ var defaultParams = {
     voiceRate: 1,
     voicePitch: 1,
     voiceVolume: 1,
-    backgroundImage: null
+    backgroundImage: null,
+    tooltips: true,
+    buttonEditor: false,
+    chkHideSettings: true
 };
 var params = defaultParams;
 var gotOBF = false;
@@ -68,16 +101,28 @@ function loadParams() {
             throw "null";
         params = JSON.parse(s);
         loadFileObj();
+        if (params.tooltips == null) {
+            throw "null";
+        }
+        if (params.buttonEditor == null || params.chkHideSettings == null) {
+            throw "null";
+        }
         boardsJson = loadJSON("boards/boards.json", boardsLoaded);
     } catch (e) {
         resetParams();
     };
+    //    if (smallPortrait) {
+    //        if (params.boardStyle == 'ToolbarBottom')
+    //            params.boardStyle = 'ToolbarTop';
+    //        params.inputMethod = 'Touch/Mouse';
+    //    }
 }
 
 var saveFile;
 
 async function doSaveFile() {
     const fileHandleOrUndefined = await get("file");
+    communicatorChanged = false;
     var name = "MyPicomBoard.obf";
     if (boardDiskFormat == 2)
         name = "MyPicomBoard.obz";
@@ -158,7 +203,6 @@ async function doSaveFile() {
     //    }
 }
 
-
 var fileObj;
 async function loadIt() {
     if (fileObj.name.includes(".obf")) { // single file
@@ -170,6 +214,7 @@ async function loadIt() {
             myBoard = JSON.parse(e.target.result);
             currentBoardName = fileObj.name.substring(fileObj.name.indexOf('/') + 1);
             jsonLoaded();
+            showTabs(0);
             //                    started = true;
         });
         reader.readAsText(fileObj);
@@ -199,12 +244,13 @@ async function loadFileObj() {
     //    await idbKeyval.set("file", obj);
     try {
         fileObj = await idbKeyval.get("file");
-        if (fileObj == null || fileObj == undefined)
+        if (fileObj == null || fileObj == undefined) {
             loadBoard('boards/' + params.boardName);
-        else {
+        } else {
             loadIt();
         }
-
+        //        showTabs(0);
+        communicatorChanged = false;
     } catch (e) {
         console.log(e);
     }
@@ -216,7 +262,7 @@ async function saveFileObj(obj) {
 
 function showEdit() {
     //    return;
-    showTabs(1);
+    showTabs(lastTab);
     if (currentY == rows)
         currentY--;
     gui.hide();
@@ -238,16 +284,35 @@ function showEdit() {
 }
 
 function showSettings() {
-    showTabs(1);
+    showTabs(lastTab);
     if (!buttonPanel.hidden)
         closeEdit();
-    gui.width = window.innerWidth * .32;
+    if (smallPortrait) {
+        gui.width = window.innerWidth;
+    } else {
+        gui.width = window.innerWidth * .319;
+    }
     gui.show();
     guiVisible = true;
 }
 
+function askToSave2() {
+    if (communicatorChanged) {
+        Notiflix.Confirm.show('Picom', 'Current communicator has been changed. Do you want to save those changes?', 'ye', 'noo', function () {
+            needToSave();
+        }, function () {
+            var fileLoad2 = document.getElementById('file-input').click();
+        });
+
+    }
+    communicatorChanged = false;
+}
+
 function setUpGUI() {
+    loadParams();
     setUpPanel();
+    setUpGUI2();
+    //    showSettings2();
 
     gui = new dat.GUI({
         //        autoPlace: false,
@@ -258,17 +323,9 @@ function setUpGUI() {
     var close = {
         X: function () {
             showTabs(0);
-            gui.hide();
-            setTimeout(hideSettings, 500);
-
-            function hideSettings() {
-                guiVisible = false;
-                showGUI = 0;
-            }
             saveParams();
         }
     };
-
 
     var load = {
         Load_Board_From_File: function () {
@@ -276,20 +333,23 @@ function setUpGUI() {
             setTimeout(hideSettings, 500);
 
             function hideSettings() {
-                guiVisible = false;
                 showGUI = 0;
             }
             saveParams();
-            var fileLoad = document.getElementById('file-input').click();
+            if (communicatorChanged)
+                askToSave2();
+            else {
+                var fileLoad1 = document.getElementById('file-input').click();
+            }
+            showTabs(0);
         }
     };
-
-    var editButton = {
-        Edit_Button: function () {
-            showEdit();
-        }
-    };
-
+    //
+    //    var editButton = {
+    //        Edit_Button: function () {
+    //            showEdit();
+    //        }
+    //    };
 
     document.getElementById('file-input').addEventListener('change', function (evt) {
         //        var tgt = evt.target || window.event.srcElement,
@@ -316,13 +376,15 @@ function setUpGUI() {
             else if (boardDiskFormat == 2) // obz
                 boardDiskFormat = 2;
             doSaveFile();
+            showTabs(0);
         }
     };
 
-    var c = gui.add(close, 'X');
+    //    var c = gui.add(close, 'X').name("🅇");
     gui.__closeButton.hidden = true;
 
     function setOptions() {
+        crosshairs.hidden = true;
         clearTimeout(tmrAccept);
         clearTimeout(tmrHover);
         hoverCount = 0;
@@ -423,6 +485,7 @@ function setUpGUI() {
                 switchStyleOptions();
                 break;
             case strFace:
+                crosshairs.hidden = false;
                 speed.__min = 0;
                 if (params.speed == .2)
                     speed.setValue(0);
@@ -439,6 +502,7 @@ function setUpGUI() {
                 initialiseFace();
                 break;
             case strFaceExpressions:
+                crosshairs.hidden = false;
                 speed.__min = 0;
                 if (params.speed == .2)
                     speed.setValue(0);
@@ -459,9 +523,10 @@ function setUpGUI() {
     }
 
     var boards = gui.add(params, 'boardName', boardNames).name(strPiComBoards).onChange(function () {
-        loadBoard('boards/' + params.boardName);
-        saveFileObj(null);
+        askToSave('boards/' + params.boardName);
+        //        loadBoard();//        saveFileObj(null);
     });
+
     var inputOptions = gui.addFolder(strInputOptions);
     var inputMethod = inputOptions.add(params, 'inputMethod', ['Touch/Mouse', 'Touchpad', 'Analog Joystick', 'Cursor Keys/Dpad', 'MouseWheel', 'Switches', strFace, strFaceExpressions
                                    // , 'Face', 'Eyes'
@@ -470,7 +535,9 @@ function setUpGUI() {
     var enableZoom = inputOptions.add(params, 'allowZoom').name(strAllowZoom);
 
     var touchpadMode = inputOptions.add(params, 'touchpadMode', ['Absolute', 'Joystick']).name(strTouchpadMode).onChange(touchpadOptions);
-
+    //    if (smallPortrait) {
+    //        inputMethod.__li.style.display = "none";
+    //    }
 
     function touchpadOptions() {
         currentX = floor(columns / 2);
@@ -644,7 +711,11 @@ function setUpGUI() {
     var acceptanceDelayHover = inputOptions.add(params, 'acceptanceDelayHover', 0.3, 3.0, .1).name(strHoverTimer);
 
     var visual = gui.addFolder(strVisual);
+    //    if (smallPortrait) {
+    //        visual.add(params, 'boardStyle', ['Fullscreen', 'ToolbarTop']).name(strToolbar).onChange(toolbarPos);
+    //    } else {
     visual.add(params, 'boardStyle', ['Fullscreen', 'ToolbarTop', 'ToolbarBottom']).name(strToolbar).onChange(toolbarPos);
+    //    }
 
     function toolbarPos() {
         switch (params.boardStyle) {
@@ -734,12 +805,21 @@ function setUpGUI() {
             speech.stop();
             speech.setVolume(params.voiceVolume);
             speech.speak("Hello");
-        });;
+        });
 
     speechSettings.add(params, 'vocaliseEachButton').name(strSpeakOnSelect);
     speechSettings.add(params, 'vocaliseLinkButtons').name(strSpeakOnLink);
     var advancedSettings = gui.addFolder(strAdvanced);
     advancedSettings.add(params, 'autoReturnToHome').name(strAutoHome);
+    advancedSettings.add(params, 'tooltips').name("Show Tooltips");
+    advancedSettings.add(params, 'buttonEditor').name("Button Editor").onChange(function () {
+        editButton.hidden = !params.buttonEditor;
+    });
+
+    advancedSettings.add(params, 'chkHideSettings').name("Hide Settings Button").onChange(function () {
+        //        settingsSplash.hidden = params.chkHideSettings;
+    });
+
     setOptions();
     gui.hide();
     guiVisible = false;
@@ -758,9 +838,13 @@ function setUpGUI() {
             showGUI++;
             console.log("Right clicks: ", showGUI)
             if (showGUI > 2) {
-                closeEdit(); // hide button editor if showing
-                showSettings();
-                showGUI++;
+                if (lastTab == 1) // open last tab used
+                    showSettings();
+                else
+                    showEdit();
+                showGUI = 0;
+
+
                 //                buttonPanel.hidden = false; // button to allow editing menu etc
             }
         } else

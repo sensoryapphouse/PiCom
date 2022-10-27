@@ -1,6 +1,8 @@
 var gpad;
 var waitingForCentre = false;
 
+
+
 function JoystickMoveTo(jy, jx, jy1, jx1) { // first two are joystick 1, last two are joystick 2
     if (splash.hidden) {
         if (Math.abs(jx) < .75)
