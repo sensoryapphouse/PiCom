@@ -1,9 +1,9 @@
-var strPiComBoards = "PiCom Boards";
+var strPiComBoards = "PiCom Template";
 var strInputOptions = "Input Options";
 var strInputMethod = "Input Method";
 var strAllowZoom = "Allow Zoom";
 var strSelectOn = "Select on";
-var strVisual = "Visual";
+var strVisual = "View";
 var strToolbar = "Toolbar";
 var strLabelPosition = "Label Position";
 var strSpacing = "Spacing";
@@ -17,13 +17,13 @@ var strRate = "Rate";
 var strVolume = "Volume";
 var strAdvanced = "Advanced";
 var strAutoHome = "Auto Home";
-var strLoadBoard = "Import Board From File";
-var strSaveBoard = "Export Board To File";
+var strLoadBoard = "Import Communicator From File";
+var strSaveBoard = "Export Communicator To File";
 var strEditButton = "Edit";
 var strText = "Text:";
 var strVocalise = "Vocalize:";
 var strLinkTo = "Link to:";
-var strInstandMessage = "Instant Message";
+var strInstant = "Instant";
 var strSpeakOnSelect = "Speak on select";
 var strSpeakOnLink = "Speak on link";
 var strTouchpadMode = "Touchpad Mode";
@@ -62,10 +62,55 @@ var strNone = "None";
 var strSmall = "Small";
 var strMedium = "Medium";
 var strLarge = "Large";
+var strHideSettingsButton = "Hide Settings Button";
+var strsteButtonEditor = "Button Editor";
+var strShowTooltips = "Show Tooltips";
+var strHello = "Hello";
+var strBackgroundImage = "Background Image";
 
+var strChanged = "Current communicator has been changed.  Do you want to save those changes?";
+var strYes = "Yes.";
+var strNo = "No.";
+var strOK = "OK.";
 
 var strFace = "Face Control";
 var strFaceExpressions = "Face Control (expressions)";
+
+var strArrows = "Use arrow keys to choose button to edit.";
+var strSettingsEditor = "Settings editor lkashdfklshdklf shafois \njashjhsajk.";
+var strButtonEditor = "Button editor.";
+var strBoardEditor = "Board editor.";
+var strPreviewImage = "Preview image, background and border colours.";
+var strDeleteImage = "Delete image from button.";
+var strChooseImage = "Choose image for button (can also drag and drop images).";
+var strBackgroundColour = "Set background colour for button.";
+var strBorderColour = "Set border colour for button.";
+var strDeleteSound = "Delete sound file for button.";
+var strLoadSound = "Load sound file from disc.";
+var strStopRecording = "Stop recording sound file.";
+var strRecordSound = "Record sound fine for button.";
+var strPlaySound = "Play sound file.";
+var strTextLabel = "Text label for button.";
+var strVolcaliseTooltip = "Alternative text to speak when button pressed.";
+var strLinkToTooltip = "Link to other board.";
+var strInstantTooltip = "Speak this button but do not add to message bar.";
+var strHomeTooltip = "Button goes to home page.";
+var strBackspaceTooltip = "Delete last button in message bar.";
+var strClearToolTip = "Clear message bar.";
+var strSpeakTooltip = "Speak message bar.";
+
+var strCannotAdd = "Cannot add another board to single board communicator (obf).";
+var strTypeName = "Please type board name.";
+var strCurrentBoard = "Current Board.";
+var strSetSize = "Set Board Size.";
+var strRows = "Rows.";
+var strColumns = "Columns.";
+var strAddBoard = "Add Board.";
+var strName = "Name.";
+var strDescription = "Description.";
+var strNewBoard = "Make New Board.";
+var strNewCommunicator = "New Communicator.";
+var strMakeNewCommunicator = "Make New Communicator.";
 
 var lang = "en";
 
@@ -91,6 +136,11 @@ function LinkCheck(url) {
 function initLanguages() {
     var lg = getNavigatorLanguage();
     var l = "lang/" + lg + ".json";
+    l = "lang/en-gb.json"
+    lang = LOADJSON(l, getLang);
+    return;
+
+    // do proper language check later - linkcheck not working properly on server.
     var exists = LinkCheck(l);
     if (exists)
         lang = LOADJSON(l, getLang);
@@ -112,7 +162,7 @@ function getLang(s) {
         strAllowZoom = lang.AllowZoom;
     if (lang.hasOwnProperty('SelectOn'))
         strSelectOn = lang.SelectOn;
-    if (lang.hasOwnProperty('Visual'))
+    if (lang.hasOwnProperty('View'))
         strVisual = lang.Visual;
     if (lang.hasOwnProperty('Toolbar'))
         strToolbar = lang.Toolbar;
@@ -154,8 +204,8 @@ function getLang(s) {
         strVocalise = lang.Vocalise;
     if (lang.hasOwnProperty('LinkTo'))
         strLinkTo = lang.LinkTo;
-    if (lang.hasOwnProperty('InstandMessage'))
-        strInstandMessage = lang.InstandMessage;
+    if (lang.hasOwnProperty('Instant'))
+        strInstant = lang.Instant;
     if (lang.hasOwnProperty('SpeakOnSelect'))
         strSpeakOnSelect = lang.SpeakOnSelect;
     if (lang.hasOwnProperty('SpeakOnLink'))

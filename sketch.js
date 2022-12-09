@@ -1,6 +1,5 @@
-var testing = false;
 var smallPortrait = false;
-
+var NotiflixLoadingTmr = null;
 var myBoard = {};;
 var imgs = [];
 var btnOrder = [];
@@ -28,6 +27,7 @@ var showGUI = 0; // count right clicks for showing gui
 var theBody = document.getElementById('body');
 var picomBar = document.getElementById('picomBar');
 var viewport = window.visualViewport;
+var layoutViewport;
 var settingsButton;
 var editButton;
 var closeButton;
@@ -46,7 +46,8 @@ var lastY = -1;
 var boardSetName = 'boards/project-core.obf';
 var boardsFolderName = 'boards/communikate-20/';
 var homeBoardName;
-var currentBoardName = "Not yet";
+var currentBoardName = "board";
+var currentCommunicatorName = "communicator";
 //var highContrast = false;
 //var backgroundColour = 'rgb(222,220,220)';
 
@@ -56,17 +57,21 @@ var scanningSpeed = .5;
 var splash;
 var settingsSplash;
 var startSplash;
+var guideSplash;
+var helpSplash;
 var buttonPanel;
 
 window.addEventListener('beforeunload', function (e) {
-    if (!testing) { // don't allow to close without offering save
+    if (communicatorChanged) {
+        askToSave();
         e.preventDefault();
         e.returnValue = '';
     }
 });
 
 function doSettingsSplash() {
-    settingsSplash.hidden = params.chkHideSettings;
+    if (startSplash.hidden)
+        settingsSplash.hidden = params.chkHideSettings;
 }
 
 window.onload = () => {
@@ -78,7 +83,7 @@ window.onload = () => {
     viewportHandler();
 
     function viewportHandler() {
-        var layoutViewport = document.getElementById('layoutViewport');
+        layoutViewport = document.getElementById('layoutViewport');
         layoutViewport.tabIndex = -1;
         // Since the bar is position: fixed we need to offset it by the visual
         // viewport's offset from the layout viewport origin.
@@ -89,7 +94,7 @@ window.onload = () => {
                 layoutViewport.getBoundingClientRect().height +
                 viewport.offsetTop;
         } else
-            offsetY = viewport.offsetTop - (viewport.scale - 1) * picomBar.getBoundingClientRect().height; // use this for top
+            offsetY = viewport.offsetTop - (viewport.scale - 1) * picomBar.getBoundingClientRect().height * 1.05; // use this for top
 
         picomBar.style.transform = 'translate(' +
             offsetX + 'px,' +
@@ -102,6 +107,21 @@ window.onload = () => {
     splash = document.querySelector('splash');
     startSplash = document.querySelector('startSplash');
     settingsSplash = document.querySelector('settingsSplash');
+    guideSplash = document.querySelector('guideSplash');
+
+    guideSplash.onclick = function (e) {
+        window.open("https://www.sensoryapphouse.com//picomhelp", "Sensory App House", "toolbar=yes,scrollbars=yes,resizable=yes");
+        showSplashButtons();
+        e.stopPropagation();
+        e.preventDefault();
+    }
+    helpSplash = document.querySelector('helpSplash');
+    helpSplash.onclick = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        showSplashButtons();
+        window.open("https://www.sensoryapphouse.com//picominfo", "Sensory App House", "toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500");
+    }
 
     crosshairs = document.querySelector('crosshairs');
     crosshairs.style.left = window.innerWidth / 2 + "px";
@@ -114,26 +134,65 @@ window.onload = () => {
     buttonPanel.tabIndex = -1;
     buttonPanel.hidden = true;
 
-    setTimeout(function () {
-        settingsSplash.hidden = false;
-        startSplash.hidden = false;
-    }, 300);
+    //    setTimeout(function () {
+    //        settingsSplash.hidden = false;
+    //        startSplash.hidden = false;
+    //    }, 500);
 
     settingsSplash.onmousedown = function (e) {
         lastTab = 1;
-        showSettings();
-        showTabs(1);
         startSplash.hidden = true;
         splash.hidden = true;
+        guideSplash.hidden = true;
+        helpSplash.hidden = true;
+        showSettings();
+        showTabs(1);
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    settingsSplash.onmouseup = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    settingsSplash.ontouchstart = function (e) {
+        lastTab = 1;
+        startSplash.hidden = true;
+        splash.hidden = true;
+        guideSplash.hidden = true;
+        helpSplash.hidden = true;
+        showSettings();
+        showTabs(1);
+        e.stopPropagation();
+        e.preventDefault();
+    };
+    settingsSplash.ontouchend = function (e) {
         e.stopPropagation();
         e.preventDefault();
     }
 
     startSplash.onclick = function (e) {
         lastTab = 1;
-        doSettingsSplash();
         startSplash.hidden = true;
         splash.hidden = true;
+        guideSplash.hidden = true;
+        helpSplash.hidden = true;
+        doSettingsSplash();
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    startSplash.onmouseup = function (e) {
+        if (document.body.requestFullscreen) {
+            document.body.requestFullscreen();
+        } else if (document.body.msRequestFullscreen) {
+            document.body.msRequestFullscreen();
+        } else if (document.body.mozRequestFullScreen) {
+            document.body.mozRequestFullScreen();
+        } else if (document.body.webkitRequestFullscreen) {
+            document.body.webkitRequestFullscreen();
+        }
         e.stopPropagation();
         e.preventDefault();
     }
@@ -165,6 +224,8 @@ window.onload = () => {
 
     closeButton.onclick = function (e) {
         showTabs(0);
+        e.stopPropagation();
+        e.preventDefault();
     }
 
     if (testing) setTimeout(hideSplash, 500);
@@ -173,6 +234,8 @@ window.onload = () => {
         splash.hidden = true;
         settingsSplash.hidden = true;
         startSplash.hidden = true;
+        guideSplash.hidden = true;
+        helpSplash.hidden = true;
     }
 
     document.documentElement.style.overflow = 'hidden'; // hide scroll barsfirefox, chrome
@@ -188,158 +251,23 @@ window.addEventListener("orientationchange", function () {
 }, false);
 
 function windowResized() {
-    smallPortrait = (windowHeight > windowWidth);
-
-    if (smallPortrait) {
-        closeButton.style.left = "1vw";
-        closeButton.style.width = "12vw";
-        settingsButton.style.left = "9vw";
-        settingsButton.style.width = "14vw";
-        boardButton.style.left = "22vw";
-        boardButton.style.width = "14vw";
-        editButton.style.left = "35vw";
-        editButton.style.width = "14vw";
-        buttonPanel.style.left = "0vw";
-        buttonPanel.style.width = "100vw";
-        titleLbl.style.width = "99vw";
-        buttonNoLbl.style.width = "37.14vw";
-        buttonNoLbl.style.left = "60vw";
-        lblText.style.width = "31.4vw";
-        lblText.style.left = "3vw";
-        lblVocal.style.width = "31.4vw";
-        lblVocal.style.left = "3vw";
-        lblLink.style.width = "31.4vw";
-        lblLink.style.left = "3vw";
-        txtText.style.width = "60vw";
-        txtText.style.left = "34.3vw";
-        txtVocal.style.width = "60vw";
-        txtVocal.style.left = "34.3vw";
-        txtLink.style.width = "61.5vw";
-        txtLink.style.left = "34.3vw";
-        lblInstant.style.width = "83vw";
-        lblInstant.style.left = "11.4vw";
-        upArrow.style.width = "17.14vw";
-        upArrow.style.left = "70vw";
-        downArrow.style.width = "17.14vw";
-        downArrow.style.left = "70vw";
-        leftArrow.style.width = "17.14vw";
-        leftArrow.style.left = "60vw";
-        rightArrow.style.width = "17.14vw";
-        rightArrow.style.left = "80vw";
-        instantMsg.style.width = "5.7vw";
-        instantMsg.style.left = "1.43vw";
-        homeChk.style.width = "5.7vw";
-        homeChk.style.left = "7.14vw";
-        backChk.style.width = "5.7vw";
-        backChk.style.left = "30vw";
-        clearChk.style.width = "5.7vw";
-        clearChk.style.left = "50vw";
-        speakChk.style.width = "5.7vw";
-        speakChk.style.left = "75.7vw";
-        btnLoadPic.style.width = "20vw";
-        btnLoadPic.style.left = "35vw";
-        btnDeletePic.style.width = "14.3vw";
-        btnDeletePic.style.left = "40vw";
-        btnPlay.style.width = "14.3vw";
-        btnPlay.style.left = "5.7vw";
-        btnRecSnd.style.width = "14.3vw";
-        btnRecSnd.style.left = "24.3vw";
-        btnStopRec.style.width = "14.3vw";
-        btnStopRec.style.left = "42.9vw";
-        btnDeleteSnd.style.width = "14.3vw";
-        btnDeleteSnd.style.left = "80vw";
-        btnLoadSnd.style.width = "14.3vw";
-        btnLoadSnd.style.left = "61.4vw";
-        btnEdgeCol.style.width = "22.8vw";
-        btnEdgeCol.style.left = "31.7vw";
-        btnFillCol.style.width = "22.8vw";
-        btnFillCol.style.left = "4.3vw";
-        imgCurrentImg.style.width = "31.4vw";
-        imgCurrentImg.style.left = "4.3vw";
-        imgUparrow.style.width = "4vw";
-        imgUparrow.style.left = "14vw";
-    } else {
-        closeButton.style.left = "1vw";
-        closeButton.style.width = "5vw";
-        settingsButton.style.left = "4.3vw";
-        settingsButton.style.width = "7vw";
-        boardButton.style.left = "11vw";
-        boardButton.style.width = "7vw";
-        editButton.style.left = "17.7vw";
-        editButton.style.width = "10vw";
-        buttonPanel.style.left = "1vw";
-        buttonPanel.style.width = "35vw";
-        titleLbl.style.width = "33vw";
-        buttonNoLbl.style.width = "13vw";
-        buttonNoLbl.style.left = "21vw";
-        lblText.style.width = "11vw";
-        lblText.style.left = "1vw";
-        lblVocal.style.width = "11vw";
-        lblVocal.style.left = "1vw";
-        lblLink.style.width = "11vw";
-        lblLink.style.left = "1vw";
-        txtText.style.width = "21.2vw";
-        txtText.style.left = "12vw";
-        txtVocal.style.width = "21.2vw";
-        txtLink.style.width = "21.2vw";
-        txtLink.style.left = "12vw";
-        txtVocal.style.left = "12vw";
-        lblInstant.style.width = "29vw";
-        lblInstant.style.left = "4vw";
-        upArrow.style.width = "6vw";
-        upArrow.style.left = "24.5vw";
-        downArrow.style.width = "6vw";
-        downArrow.style.left = "24.5vw";
-        leftArrow.style.width = "6vw";
-        leftArrow.style.left = "21vw";
-        rightArrow.style.width = "6vw";
-        rightArrow.style.left = "28vw";
-        instantMsg.style.width = "2vw";
-        instantMsg.style.left = ".5vw";
-        homeChk.style.width = "2vw";
-        homeChk.style.left = "2.5vw";
-        backChk.style.width = "2vw";
-        backChk.style.left = "10.5vw";
-        clearChk.style.width = "2vw";
-        clearChk.style.left = "17.5vw";
-        speakChk.style.width = "2vw";
-        speakChk.style.left = "26.5vw";
-        btnLoadPic.style.width = "7vw";
-        btnLoadPic.style.left = "12.25vw";
-        btnDeletePic.style.width = "5vw";
-        btnDeletePic.style.left = "14vw";
-        btnPlay.style.width = "5vw";
-        btnPlay.style.left = "2vw";
-        btnRecSnd.style.width = "5vw";
-        btnRecSnd.style.left = "8.5vw ";
-        btnStopRec.style.width = "5vw";
-        btnStopRec.style.left = "15vw";
-        btnDeleteSnd.style.width = "5vw";
-        btnDeleteSnd.style.left = "28vw";
-        btnLoadSnd.style.width = "5vw";
-        btnLoadSnd.style.left = "21.5vw";
-        btnEdgeCol.style.width = "8vw";
-        btnEdgeCol.style.left = "11.1vw";
-        btnFillCol.style.width = "8vw";
-        btnFillCol.style.left = "1.5vw";
-        imgCurrentImg.style.width = "11vw";
-        imgCurrentImg.style.left = "1.5vw";
-        imgUparrow.style.width = "1.4vw";
-        imgUparrow.style.left = "4.9vw";
-    }
+    //    var layoutViewport = document.getElementById('layoutViewport');
+    smallPortrait = (layoutViewport.offsetHeight > layoutViewport.offsetWidth);
     if (params.boardStyle == 'Fullscreen') // full screen
-        hWindow = windowHeight;
+        hWindow = layoutViewport.offsetHeight;
     else // toolbar
-        hWindow = windowHeight * .9;
+        hWindow = layoutViewport.offsetHeight * .9;
 
     var pos = document.getElementById("body");
-    resizeCanvas(windowWidth, windowHeight);
+    resizeCanvas(layoutViewport.offsetWidth, layoutViewport.offsetHeight);
     if (smallPortrait) {
-        stepx = windowWidth / rows;
+        stepx = layoutViewport.offsetWidth / rows;
         stepy = hWindow / columns;
+        splash.style.backgroundImage = "url('images/PiCom Portrait.jpg')";
     } else {
-        stepx = windowWidth / columns;
+        stepx = layoutViewport.offsetWidth / columns;
         stepy = hWindow / rows;
+        splash.style.backgroundImage = "url('images/splash.jpg')";
     }
     refreshBoard++;
 
@@ -347,26 +275,162 @@ function windowResized() {
         offsetForBoard = windowHeight * .1;
     else
         offsetForBoard = 0;
-    if (smallPortrait) {
-        gui.width = window.innerWidth;
-        gui2.width = window.innerWidth;
-    } else {
-        gui.width = window.innerWidth * .319;
-        gui2.width = window.innerWidth * .319;
-    }
-    //    try {
-    //        gui.width = window.innerWidth * .32;
-    //    } catch (e) {}
+
+    try {
+        if (smallPortrait) {
+            gui.width = window.innerWidth * .9;
+            gui2.width = window.innerWidth * .9;
+            closeButton.style.left = "1vw";
+            closeButton.style.width = "12vw";
+            settingsButton.style.left = "9vw";
+            settingsButton.style.width = "14vw";
+            boardButton.style.left = "22vw";
+            boardButton.style.width = "14vw";
+            editButton.style.left = "35vw";
+            editButton.style.width = "14vw";
+            buttonPanel.style.left = "0vw";
+            buttonPanel.style.width = "100vw";
+            //        titleLbl.style.width = "99vw";
+            buttonNoLbl.style.width = "37.14vw";
+            buttonNoLbl.style.left = "60vw";
+            lblText.style.width = "31.4vw";
+            lblText.style.left = "3vw";
+            lblVocal.style.width = "31.4vw";
+            lblVocal.style.left = "3vw";
+            lblLink.style.width = "31.4vw";
+            lblLink.style.left = "3vw";
+            txtText.style.width = "60vw";
+            txtText.style.left = "34.3vw";
+            txtVocal.style.width = "60vw";
+            txtVocal.style.left = "34.3vw";
+            txtLink.style.width = "61.5vw";
+            txtLink.style.left = "34.3vw";
+            lblInstant.style.width = "83vw";
+            lblInstant.style.left = "11.4vw";
+            upArrow.style.width = "17.14vw";
+            upArrow.style.left = "70vw";
+            downArrow.style.width = "17.14vw";
+            downArrow.style.left = "70vw";
+            leftArrow.style.width = "17.14vw";
+            leftArrow.style.left = "60vw";
+            rightArrow.style.width = "17.14vw";
+            rightArrow.style.left = "80vw";
+            instantMsg.style.width = "5.7vw";
+            instantMsg.style.left = "1.43vw";
+            homeChk.style.width = "5.7vw";
+            homeChk.style.left = "7.14vw";
+            backChk.style.width = "5.7vw";
+            backChk.style.left = "30vw";
+            clearChk.style.width = "5.7vw";
+            clearChk.style.left = "50vw";
+            speakChk.style.width = "5.7vw";
+            speakChk.style.left = "75.7vw";
+            btnLoadPic.style.width = "20vw";
+            btnLoadPic.style.left = "35vw";
+            btnDeletePic.style.width = "14.3vw";
+            btnDeletePic.style.left = "40vw";
+            btnPlay.style.width = "14.3vw";
+            btnPlay.style.left = "5.7vw";
+            btnRecSnd.style.width = "14.3vw";
+            btnRecSnd.style.left = "24.3vw";
+            btnStopRec.style.width = "14.3vw";
+            btnStopRec.style.left = "42.9vw";
+            btnDeleteSnd.style.width = "14.3vw";
+            btnDeleteSnd.style.left = "80vw";
+            btnLoadSnd.style.width = "14.3vw";
+            btnLoadSnd.style.left = "61.4vw";
+            btnEdgeCol.style.width = "22.8vw";
+            btnEdgeCol.style.left = "31.7vw";
+            btnFillCol.style.width = "22.8vw";
+            btnFillCol.style.left = "4.3vw";
+            imgCurrentImg.style.width = "31.4vw";
+            imgCurrentImg.style.left = "4.3vw";
+            imgUparrow.style.width = "4vw";
+            imgUparrow.style.left = "14vw";
+            settingsSplash.style.width = "10vw";
+            settingsSplash.style.height = "10vw";
+            settingsSplash.style.backgroundSize = "10vw 10vw";
+        } else {
+            gui.width = window.innerWidth * .319;
+            gui2.width = window.innerWidth * .319;
+            closeButton.style.left = "1vw";
+            closeButton.style.width = "5vw";
+            settingsButton.style.left = "4.3vw";
+            settingsButton.style.width = "7vw";
+            boardButton.style.left = "11vw";
+            boardButton.style.width = "7vw";
+            editButton.style.left = "17.7vw";
+            editButton.style.width = "7vw";
+            buttonPanel.style.left = "1vw";
+            buttonPanel.style.width = "35vw";
+            titleLbl.style.width = "33vw";
+            buttonNoLbl.style.width = "13vw";
+            buttonNoLbl.style.left = "21vw";
+            lblText.style.width = "11vw";
+            lblText.style.left = "1vw";
+            lblVocal.style.width = "11vw";
+            lblVocal.style.left = "1vw";
+            lblLink.style.width = "11vw";
+            lblLink.style.left = "1vw";
+            txtText.style.width = "21.2vw";
+            txtText.style.left = "12vw";
+            txtVocal.style.width = "21.2vw";
+            txtLink.style.width = "21.2vw";
+            txtLink.style.left = "12vw";
+            txtVocal.style.left = "12vw";
+            lblInstant.style.width = "29vw";
+            lblInstant.style.left = "4vw";
+            upArrow.style.width = "6vw";
+            upArrow.style.left = "24.5vw";
+            downArrow.style.width = "6vw";
+            downArrow.style.left = "24.5vw";
+            leftArrow.style.width = "6vw";
+            leftArrow.style.left = "21vw";
+            rightArrow.style.width = "6vw";
+            rightArrow.style.left = "28vw";
+            instantMsg.style.width = "2vw";
+            instantMsg.style.left = ".5vw";
+            homeChk.style.width = "2vw";
+            homeChk.style.left = "2.5vw";
+            backChk.style.width = "2vw";
+            backChk.style.left = "10.5vw";
+            clearChk.style.width = "2vw";
+            clearChk.style.left = "17.5vw";
+            speakChk.style.width = "2vw";
+            speakChk.style.left = "26.5vw";
+            btnLoadPic.style.width = "7vw";
+            btnLoadPic.style.left = "12.25vw";
+            btnDeletePic.style.width = "5vw";
+            btnDeletePic.style.left = "14vw";
+            btnPlay.style.width = "5vw";
+            btnPlay.style.left = "2vw";
+            btnRecSnd.style.width = "5vw";
+            btnRecSnd.style.left = "8.5vw ";
+            btnStopRec.style.width = "5vw";
+            btnStopRec.style.left = "15vw";
+            btnDeleteSnd.style.width = "5vw";
+            btnDeleteSnd.style.left = "28vw";
+            btnLoadSnd.style.width = "5vw";
+            btnLoadSnd.style.left = "21.5vw";
+            btnEdgeCol.style.width = "8vw";
+            btnEdgeCol.style.left = "11.1vw";
+            btnFillCol.style.width = "8vw";
+            btnFillCol.style.left = "1.5vw";
+            imgCurrentImg.style.width = "11vw";
+            imgCurrentImg.style.left = "1.5vw";
+            imgUparrow.style.width = "1.4vw";
+            imgUparrow.style.left = "4.9vw";
+            settingsSplash.style.width = "5vw";
+            settingsSplash.style.height = "5vw";
+            settingsSplash.style.backgroundSize = "5vw 5vw";
+        }
+    } catch (e) {}
     //    cvs.canvas.clientTop = windowHeight * .1;
 }
 
 
 function preload() {
-    loadParams();
-    if (params.boardStyle == 'Fullscreen')
-        hWindow = windowHeight;
-    else
-        hWindow = windowHeight * .9;
+    //    loadParams();
     //    loadBoard('boards/' + params.boardName);
     document.getElementById("body").style.z = 800;
 }
@@ -376,7 +440,7 @@ function LOADJSON(s, callback) { // need this and brdLoaded as loadJSON seems to
     xobj.overrideMimeType("application/json");
     xobj.open('GET', s, true); // Replace 'appDataServices' with the path to your file
     xobj.onreadystatechange = function () {
-        if (xobj.readyState == 4 && xobj.status == "200") {
+        if (xobj.readyState == 4) { // && xobj.status == "200") {
             // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
             callback(xobj.responseText);
         }
@@ -390,7 +454,11 @@ function brdLoaded(s) {
 }
 
 function loadBoard(s) {
-    currentBoardName = s; //s.substring(s.indexOf('/') + 1);
+    console.log("Load board: ", s);
+    currentCommunicatorName = s.substring(s.indexOf('/') + 1);
+    try {
+        guiBoardName.name = "Current File: " + currentCommunicatorName;
+    } catch (e) {}
     if (s.includes(".obf")) {
         boardDiskFormat = 0;
         currentZipBoard = "";
@@ -404,8 +472,13 @@ function loadBoard(s) {
         //        currentBoardName = s.substring(s.indexOf('/') + 1);
     } else if (boardDiskFormat == 1) // folder
         manifestInfo = loadJSON(boardsFolderName + 'manifest.json', manifestLoaded);
-    else // obz
+    else { // obz 
+        NotiflixLoadingTmr = setTimeout(function () {
+            Notiflix.Loading.arrows();
+        }, 200);
+
         getZip(s);
+    }
     //    started = true;
     refreshBoard++;
 }
@@ -419,10 +492,22 @@ function setFaceSpeed(i) {
 
 async function getZip(s) {
     //    s = "boards/zip.zip";
+    console.log("Get zip: ", s);
     setFaceSpeed(2000);
     blob = await fetch(s).then(r => r.blob());
+    zip = null;
+    currentZipBoard = "";
     zip = new JSZip();
     zip.loadAsync(blob).then(function (zipinfo) {
+        showSplashButtons();
+        if (NotiflixLoadingTmr != null) {
+            clearTimeout(NotiflixLoadingTmr);
+            NotiflixLoadingTmr = null;
+            Notiflix.Loading.remove();
+        } else {
+            NotiflixLoadingTmr = null;
+            Notiflix.Loading.remove();
+        }
         //        console.log(zipinfo);
         zipData = zipinfo;
         zipData.file("manifest.json").async("string").then(function (data) {
@@ -443,12 +528,15 @@ async function getZip(s) {
 var currentZipBoard = "";
 
 function loadZipBoard(s) {
+    console.log("Load zip board: ", s);
     if (currentZipBoard == s)
         return;
     currentZipBoard = s;
     loadingboard = true;
+    console.log("Loading board: ", s);
     zipData.file(s).async("string").then(function (data2) {
         //        console.log(data2);
+        console.log("Got board: ", s);
         myBoard = JSON.parse(data2);
         jsonLoaded();
         // now read images
@@ -468,13 +556,14 @@ function manifestLoaded() {
 var re = /(?:\.([^.]+))?$/;
 var counter;
 async function jsonLoaded() {
+    console.log("Json loaded");
     gotGIF = false;
     setFaceSpeed(1000);
     loadingBoard = true;
     imgs.length = 0;
     //    toConvert = [];
     try {
-        for (i = 0; i < myBoard.images.length; i++) {
+        for (var i = 0; i < myBoard.images.length; i++) {
             counter = i;
             imgs[i] = null;
             var im = myBoard.images[i];
@@ -521,10 +610,11 @@ async function jsonLoaded() {
         }, 500);
 
     } catch (error) {
-        for (i = 0; i < myBoard.images.length; i++) {
+        for (var i = 0; i < myBoard.images.length; i++) {
             imgs[i] = null;
         }
         loadingBoard = false;
+        console.log("Image load error");
     }
 
     setTimeout(windowResized, 100);
@@ -542,7 +632,7 @@ var tmrLoad = null;
 function makeTransparent() {
     return;
     var i = 0;
-    for (j = 0; j < toConvert.length; j++) {
+    for (var j = 0; j < toConvert.length; j++) {
         i = toConvert[j];
         imgs[i].loadPixels();
         for (var x = 0; x < width; x++) {
@@ -565,10 +655,18 @@ var someNumber = 0;
 function setup() {
     //  gui.hide();
     //    p5.disableFriendlyErrors = true;
-    cvs = createCanvas(windowWidth, hWindow);
+    cvs = createCanvas(windowWidth, windowHeight); //hWindow);
     stepx = windowWidth / columns;
     stepy = hWindow / rows;
-    setTimeout(setUpGUI, 250);
+    setTimeout(function () {
+        loadParams();
+        if (params.boardStyle == 'Fullscreen')
+            hWindow = windowHeight;
+        else
+            hWindow = windowHeight * .9;
+        setTimeout(setUpGUI, 150);
+    }, 500);
+    //    setTimeout(loadParams, 500);
     frameRate(10);
     window.setInterval(function () { //refresh every five seconds if not done already
         refreshBoard++;
@@ -578,12 +676,13 @@ function setup() {
 var busy = false;
 
 var loadingBoard = true;
+var txtSize;
 
 function draw() {
+    txtSize = stepy / 10;
     //    if (!started)
     //        return;
     //    loadingboard = false;
-
     if (params.highContrast)
         background(32);
     else
@@ -617,7 +716,7 @@ function draw() {
                 rect(0, offsetForBoard + highlightRow * stepy, windowWidth, stepy);
             }
         }
-        textSize(stepy / 10);
+        textSize(txtSize);
     } catch (err) {}
     for (i = 0; i < rows; i++)
         for (j = 0; j < columns; j++) {
@@ -721,6 +820,7 @@ function drawButton(i, j, btnIndex) {
                     yShrink = stepy / 10;
                     break;
             }
+
             if (myBoard.buttons[btnIndex].hasOwnProperty('load_board')) {
                 if (myBoard.buttons[btnIndex].load_board.path != "")
                     rect(stepx / 40 + j * stepx + xShrink, stepy / 40 + i * stepy + offsetForBoard + yShrink, stepx * .95 - 2 * xShrink, stepy * .95 - 2 * yShrink, 0, stepx / 8, 0, 0);
@@ -731,7 +831,7 @@ function drawButton(i, j, btnIndex) {
                 rect(stepx / 40 + j * stepx + xShrink, stepy / 40 + i * stepy + offsetForBoard + yShrink, stepx * .95 - 2 * xShrink, stepy * .95 - 2 * yShrink, 0, stepx / 8, 0, 0);
             } else
                 rect(stepx / 40 + j * stepx + xShrink, stepy / 40 + i * stepy + offsetForBoard + yShrink, stepx * .95 - xShrink * 2, stepy * .95 - 2 * yShrink);
-            textSize(stepy / 10);
+            textSize(txtSize);
             var txt;
             if (myBoard.buttons[btnIndex].hasOwnProperty('label'))
                 txt = myBoard.buttons[btnIndex].label;
@@ -756,7 +856,7 @@ function drawButton(i, j, btnIndex) {
                     textAlign(CENTER, TOP);
                     text(txt, offset + stepx / 40 + j * stepx + xShrink,
                         offset + stepy / 40 + i * stepy + stepy / 40 + offsetForBoard + yShrink,
-                        stepx * .95 - 2 * xShrink, stepy / 10);
+                        stepx * .95 - 2 * xShrink, stepy / 5);
                     break;
                 case 'bottom': // text at bottom
                     textAlign(CENTER, BOTTOM);
@@ -924,6 +1024,7 @@ function justSelected(x1, y1) {
 
         if (myBoard.buttons[btnIndex].hasOwnProperty('load_board')) {
             if (params.vocaliseLinkButtons) {
+                speech.cancel();
                 speech.speak(txt);
             }
             //document.body.style.transform = 'scale(' + (window.innerWidth / window.outerWidth) + ')';
@@ -957,15 +1058,23 @@ function justSelected(x1, y1) {
                         }
                     }
 
-                    btnsLabels[buttonCount].textContent = myBoard.buttons[btnIndex].label;
+                    if (params.textPos != "none")
+                        btnsLabels[buttonCount].textContent = myBoard.buttons[btnIndex].label;
                     var imgIndex = imageIndexFromId(myBoard.buttons[btnIndex].image_id);
-                    ctx.fillStyle = "#FFFFFF";
-                    ctx.fillRect(buttonCount * 100, 0, 100, 150);
-                    ctx.drawImage(imgs[imgIndex].canvas, 2 + buttonCount * 100, 2, 96, 120);
+                    if (imgIndex >= 0) {
+                        ctx.fillStyle = "#FFFFFF";
+                        ctx.fillRect(buttonCount * 100, 0, 100, 150);
+                        if (params.textPos == "none")
+                            ctx.drawImage(imgs[imgIndex].canvas, 2 + buttonCount * 100, 2, 96, 148);
+                        else
+                            ctx.drawImage(imgs[imgIndex].canvas, 2 + buttonCount * 100, 2, 96, 120);
+                    }
                     buttonCount++;
                 }
-                if (tts && params.vocaliseEachButton) // vocaliseLinkButtons
+                if (tts && params.vocaliseEachButton) { // vocaliseLinkButtons
+                    speech.cancel();
                     speech.speak(txt);
+                }
                 if (homeBoardName != currentBoardName && params.autoReturnToHome)
                     if (boardDiskFormat == 2)
                         loadZipBoard(homeBoardName);
@@ -980,5 +1089,47 @@ function justSelected(x1, y1) {
 }
 
 function soundLoaded() {
-    snd.play();
+    var s = new Audio(snd.file);
+    //    snd.play();//    var d = snd.duration();
+    //    console.log(d);
+    s.play();
 }
+
+var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.OIndexedDB || window.msIndexedDB,
+    IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.OIDBTransaction || window.msIDBTransaction,
+    dbVersion = 1.0;
+
+// Create/open database
+var request = indexedDB.open("PiComFileStore", dbVersion);
+var db;
+var createObjectStore = function (dataBase) {
+    // Create an objectStore
+    console.log("Creating objectStore")
+    dataBase.createObjectStore("PiComFileStore");
+};
+request.onerror = function (event) {
+    console.log("Error creating/accessing IndexedDB database");
+};
+
+request.onsuccess = function (event) {
+    console.log("Success creating/accessing IndexedDB database");
+    db = request.result;
+    db.onerror = function (event) {
+        console.log("Error creating/accessing IndexedDB database");
+    };
+
+    // Interim solution for Google Chrome to create an objectStore. Will be deprecated
+    if (db.setVersion) {
+        if (db.version != dbVersion) {
+            var setVersion = db.setVersion(dbVersion);
+            setVersion.onsuccess = function () {
+                createObjectStore(db);
+                getImageFile();
+            };
+        }
+    }
+}
+
+request.onupgradeneeded = function (event) {
+    createObjectStore(event.target.result);
+};

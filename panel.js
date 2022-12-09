@@ -32,16 +32,19 @@ var btnIndex;
 var buttonsChanged = false;
 var communicatorChanged = false;
 var options = []; // select options
-
+var targetrule;
 var lastTab = 1;
+var theboards = [];
 
 function showTabs(i) {
     if (buttonsChanged) {
+        closeEdit();
         communicatorChanged = true;
         buttonsChanged = false;
     }
     if (i >= 1) {
-        settingsSplash.hidden = true;
+        if (startSplash.hidden)
+            settingsSplash.hidden == true;
         settingsButton.hidden = false;
         editButton.hidden = !params.buttonEditor;
         closeButton.hidden = false;
@@ -58,7 +61,6 @@ function showTabs(i) {
             gui2.hide();
         }
         setTimeout(hideSettings, 500);
-        closeEdit();
 
         function hideSettings() {
             doSettingsSplash();
@@ -81,6 +83,14 @@ function showTabs(i) {
             boardButton.style.backgroundColor = "rgb(200, 200, 200)";
             break;
         case 2: // button
+            if (currentX < 0)
+                currentX = 0;
+            if (currentX >= columns)
+                currentX = columns - 1;
+            if (currentY < 0)
+                currentY = 0;
+            if (currentY >= rows)
+                currentY = rows - 1;
             gui.hide();
             gui2.hide();
             buttonPanel.hidden = false;
@@ -92,20 +102,50 @@ function showTabs(i) {
             boardButton.style.backgroundColor = "rgb(200, 200, 200)";
             break;
         case 3: //board
+            if (boardDiskFormat == 2) {
+                var s = manifestInfo.paths.boards;
+                var j = 0;
+                theboards.length = 0;
+                for (var propt in s) {
+                    theboards[j] = s[propt];
+                    j++
+                }
+            }
+
+            buttonPanel.hidden = true;
             gui.hide();
             gui2.show();
-            buttonPanel.hidden = true;
             settingsButton.style.zIndex = "6000";
             settingsButton.style.backgroundColor = "rgb(200, 200, 200)";
             editButton.style.zIndex = "6001";
             editButton.style.backgroundColor = "rgb(200, 200, 200)";
             boardButton.style.zIndex = "6002";
             boardButton.style.backgroundColor = "rgb(240, 240, 240)";
+
+            if (boardDiskFormat != 2)
+                return;
+            // hack settings2 to remove and then reinsert options to update board list
+            changedBoard.__gui.__controllers[3].remove();
+            changedBoard.__gui.__controllers[2].remove();
+            changedBoard.__gui.__controllers[1].remove();
+            changedBoard.__gui.__controllers[0].remove();
+            changedBoard = currentBoard.add(params2, 'theBoardName', theboards).name("Change Board").onChange(function () {
+                loadZipBoard(params2.theBoardName);
+            });
+            rowsGui = currentBoard.add(params2, 'rows', 1, 20, 1).name(strRows);
+            columnsGui = currentBoard.add(params2, 'columns', 1, 20, 1).name(strColumns);
+            var t1 = currentBoard.add(apply1, 'Apply').name(strSetSize);
+            t1.__li.style.textAlign = "center";
+            changedBoard.updateDisplay();
             break;
     }
 }
 
 function closeEdit() {
+    if (buttonsChanged)
+        communicatorChanged = true;
+    if (!communicatorChanged)
+        return;
     if (boardDiskFormat == 2) {
         var text = JSON.stringify(myBoard, null, ' ');
         zip.file(currentBoardName, text);
@@ -116,7 +156,7 @@ function closeEdit() {
 
 function removeOptions(obj) {
     while (obj.options.length) {
-        obj.remove(0);
+        obj.options.remove(0);
     }
 }
 
@@ -149,7 +189,7 @@ function updateEditPanel() {
     var m = manifestInfo;
     if (buttonPanel.hidden)
         return;
-    removeOptions(txtLink);
+    //    removeOptions(txtLink);
     titleLbl.innerHTML = currentBoardName.substring(currentBoardName.indexOf('/') + 1);; // myBoard.name
     buttonNoLbl.innerHTML = "(" + (currentX + 1) + ", " + (currentY + 1) + ")";
     if (currentY < 0) {
@@ -162,11 +202,11 @@ function updateEditPanel() {
     }
     if (btnIndex < 0) { // everything blank
         imgCurrentImg.src = "";
-        imgCurrentImg.style.borderColor = params.backgroundColour; //"rgb(0,0,0)";
-        imgCurrentImg.style.backgroundColor = params.backgroundColour; //"rgb(255,255,255)";
-        btnFillCol.value = tinyColor(params.backgroundColour).toHexString();
+        //        imgCurrentImg.style.borderColor = params.backgroundColour; //"rgb(0,0,0)";
+        //        imgCurrentImg.style.backgroundColor = params.backgroundColour; //"rgb(255,255,255)";
+        //        btnFillCol.value = tinycolor(params.backgroundColour).toHexString();
         //'#FFFFFF';
-        btnEdgeCol.value = tinyColor(params.backgroundColour).toHexString();
+        //        btnEdgeCol.value = tinyColor(params.backgroundColour).toHexString();
         //'#000000'
         txtText.value = "";
         txtVocal.value = "";
@@ -177,15 +217,19 @@ function updateEditPanel() {
         clearChk.checked = false;
         instantMsg.checked = false;
         imgCurrentImg.style.backgroundImage = null;
-        imgCurrentImg.style.backgroundColor = 'grey';
+        //        imgCurrentImg.style.backgroundColor = 'grey';
         var tmp = "PiCom" + currentX.toString() + currentY.toString();
         myBoard.grid.order[currentY][currentX] = tmp;
         myBoard.buttons[myBoard.buttons.length] = { // initialise new button
             "id": tmp,
             "label": "",
-            "image_id": null
+            "image_id": null,
+            "background_color": params.backgroundColour,
+            "border_color": params.backgroundColour
         };
+        setOptions(txtLink);
     } else {
+        removeOptions(txtLink)
         var imgIndex = imageIndexFromId(myBoard.buttons[btnIndex].image_id);
         if (imgIndex >= 0) {
             var im = imgs[imgIndex].canvas.toDataURL();
@@ -255,6 +299,19 @@ function updateEditPanel() {
 function setUpPanel() {
     //buttonPanel.style.left = "130vw";
     //    slideTo(panel, 130);
+    var versionLbl = document.createElement("LABEL");
+    versionLbl.style.position = "absolute";
+    versionLbl.style.height = "1.8vh";
+    versionLbl.style.bottom = "0vh";
+    versionLbl.style.left = ".2vh";
+    versionLbl.style.fontFamily = "sans-serif";
+    versionLbl.style.fontSize = "1.5vh";
+    versionLbl.style.color = 'black';
+    versionLbl.style.background = 'transparent';
+    versionLbl.style.border = "none";
+    versionLbl.style.textAlign = "left";
+    versionLbl.innerHTML = version;
+
     titleLbl = document.createElement("LABEL");
     titleLbl.style.position = "absolute";
     titleLbl.style.height = "3vh";
@@ -348,7 +405,6 @@ function setUpPanel() {
     lblLink.style.verticalAlign = "centre";
     lblLink.innerHTML = strLinkTo;
 
-
     txtText = document.createElement("INPUT");
     txtText.style.position = "absolute";
     txtText.style.height = "3vh";
@@ -434,7 +490,7 @@ function setUpPanel() {
     lblInstant.style.border = "none";
     lblInstant.style.textAlign = "left";
     lblInstant.style.verticalAlign = "centre";
-    lblInstant.innerHTML = strInstandMessage;
+    lblInstant.innerHTML = strInstant;
 
     upArrow = document.createElement("INPUT");
     upArrow.style.position = "absolute";
@@ -685,9 +741,9 @@ function setUpPanel() {
     btnPlay.style.backgroundImage = "url('images/play.png')";
     btnPlay.style.backgroundColor = "transparent";
     btnPlay.setAttribute("type", "button");
-    btnPlay.onclick = function (e) {
+    btnPlay.onmouseup = function (e) {
         if (myBoard.buttons[btnIndex].hasOwnProperty('sound_id')) {
-            var snd = myBoard.buttons[btnIndex].sound_id;
+            snd = myBoard.buttons[btnIndex].sound_id;
             if (snd != -1) {
                 var i = soundIndexFromId(snd);
                 var is = myBoard.sounds[i];
@@ -969,6 +1025,7 @@ function setUpPanel() {
     buttonPanel.appendChild(backChk);
     buttonPanel.appendChild(clearChk);
     buttonPanel.appendChild(speakChk);
+    buttonPanel.appendChild(versionLbl);
     //    buttonPanel.style.left = "50vw"
 
     function onDragEnter(e) {
@@ -1004,6 +1061,7 @@ function setUpPanel() {
 
         if (e.dataTransfer.files.length > 0) {
             var imgFile = e.dataTransfer.files[0];
+            var imgName = imgFile.name.replace(/\.[^/.]+$/, "")
             filetype = imgFile.type
             const reader = new FileReader();
             reader.addEventListener('load', (event) => {
@@ -1016,6 +1074,9 @@ function setUpPanel() {
                     } else
                         s = "Picom1";
                     myBoard.buttons[btnIndex].image_id = s;
+                    var s1 = currentX.toString() + currentY.toString();
+                    if (myBoard.buttons[btnIndex].label.length == 0 || myBoard.buttons[btnIndex].label == s1)
+                        myBoard.buttons[btnIndex].label = txtText.value = imgName;
                     imgs[imgs.length] = loadImage(event.target.result, pictureLoaded);
                     tmpPicture = {
                         "id": s,
@@ -1092,126 +1153,135 @@ function setUpPanel() {
     document.addEventListener('dragleave', onDragLeave, false);
     document.addEventListener('drop', onDrop, false);
 
-    if (params.tooltips) {
-        MarcTooltips.add([leftArrow, rightArrow, upArrow, downArrow], 'Use arrow keys to choose button to edit', {
-            position: 'up',
-            className: 'green'
-        });
-//        MarcTooltips.add(closeButton, 'Close editor', {
-//            position: 'down',
-//            align: 'left',
-//            className: 'green'
-//        });
-        MarcTooltips.add(settingsButton, 'Settings editor', {
-            position: 'down',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(editButton, 'Button editor', {
-            position: 'down',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(boardButton, 'Board editor', {
-            position: 'down',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(imgCurrentImg, 'Preview image, background and border colours', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
+    MarcTooltips.add([leftArrow, rightArrow, upArrow, downArrow], strArrows, {
+        position: 'up',
+        className: 'green'
+    });
+    //        MarcTooltips.add(closeButton, 'Close editor', {
+    //            position: 'down',
+    //            align: 'left',
+    //            className: 'green'
+    //        });
+    MarcTooltips.add(settingsButton, strSettingsEditor, {
+        position: 'down',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(editButton, strButtonEditor, {
+        position: 'down',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(boardButton, strBoardEditor, {
+        position: 'down',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(imgCurrentImg, strPreviewImage, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
 
 
-        MarcTooltips.add(btnDeletePic, 'Delete image from button', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(btnLoadPic, 'Choose image for button (can also drag and drop images)', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(btnFillCol, 'Set background colour for button', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(btnEdgeCol, 'Set border colour for button', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
+    MarcTooltips.add(btnDeletePic, strDeleteImage, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(btnLoadPic, strChooseImage, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(btnFillCol, strBackgroundColour, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(btnEdgeCol, strBorderColour, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
 
-        MarcTooltips.add(btnDeleteSnd, 'Delete sound file for button', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(btnLoadSnd, 'Load sound file from disc', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(btnStopRec, 'Stop recording sound file', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(btnRecSnd, 'Record sound fine for button', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(btnPlay, 'Play sound file', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
+    MarcTooltips.add(btnDeleteSnd, strDeleteSound, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(btnLoadSnd, strLoadSound, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(btnStopRec, strStopRecording, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(btnRecSnd, strRecordSound, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(btnPlay, strPlaySound, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
 
-        MarcTooltips.add(txtText, 'Text label for button', {
-            position: 'right',
-            align: 'right',
-            className: 'green'
-        });
-        MarcTooltips.add(txtVocal, 'Alternative text to speak when button pressed', {
-            position: 'right',
-            align: 'right',
-            className: 'green'
-        });
-        MarcTooltips.add(txtLink, 'Link to other board', {
-            position: 'right',
-            align: 'right',
-            className: 'green'
-        });
+    MarcTooltips.add(txtText, strTextLabel, {
+        position: 'right',
+        align: 'right',
+        className: 'green'
+    });
+    MarcTooltips.add(txtVocal, strVolcaliseTooltip, {
+        position: 'right',
+        align: 'right',
+        className: 'green'
+    });
+    MarcTooltips.add(txtLink, strLinkToTooltip, {
+        position: 'right',
+        align: 'right',
+        className: 'green'
+    });
 
-        MarcTooltips.add(instantMsg, 'Speak this button but do not add to message bar', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(homeChk, 'Button goes to home page', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(backChk, 'Delete last button in message bar', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(clearChk, 'Clear message bar', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
-        MarcTooltips.add(speakChk, 'Speak message bar', {
-            position: 'bottom',
-            align: 'left',
-            className: 'green'
-        });
-    }
+    MarcTooltips.add(instantMsg, strInstantTooltip, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(lblInstant, strInstantTooltip, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(homeChk, strHomeTooltip, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(backChk, strBackspaceTooltip, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(clearChk, strClearToolTip, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
+    MarcTooltips.add(speakChk, strSpeakTooltip, {
+        position: 'bottom',
+        align: 'left',
+        className: 'green'
+    });
+
+    if (params.tooltips)
+        root.style.setProperty('--change', 70);
+    else
+        root.style.setProperty('--change', 0);
 
 }
+var root = document.querySelector(':root');

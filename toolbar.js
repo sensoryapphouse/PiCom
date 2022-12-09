@@ -49,13 +49,22 @@ function doClear() {
 }
 
 function doSpeak() {
-    speech.stop();
     var txt = textToSpeak;
-    txt.replace(' | ', ' ')
-    speech.speak(textToSpeak);
+    txt = txt.replaceAll(' | ', ' ');
+    speech.cancel();
+    speech.speak(txt);
 }
 
 function setUpToolbar() {
+    picomBar.onmousedown = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    picomBar.onmouseup = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
     backgroundButton = document.createElement("button");
     backgroundButton.style.position = "absolute";
     backgroundButton.style.top = "0vh";
@@ -84,24 +93,47 @@ function setUpToolbar() {
     homeBtn.style.position = "absolute";
     homeBtn.style.top = "0.5vh";
     homeBtn.style.left = "5.5vw";
-    homeBtn.style.height = "9vh";
+    homeBtn.style.height = "8.5vh";
     homeBtn.style.width = "8vw";
-    homeBtn.style.border = 'none';
+    homeBtn.style.borderColor = "black";
     homeBtn.style.background = 'none';
     homeBtn.style.backgroundImage = "url('images/home.png')";
-    homeBtn.style.backgroundSize = "8vw 9vh";
+    homeBtn.style.backgroundSize = "8vw 8.5vh";
     homeBtn.tabIndex = -1;
     homeBtn.onclick = function (e) {
         e.stopPropagation();
         e.preventDefault();
         goHome();
     };
-    homeBtn.onmouseover = function () {
+    homeBtn.onmouseover = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
         if (!settingsButton.hidden)
             return;
         toolbarHighlightItem(0);
     };
-    homeBtn.onmouseleave = function () {
+    homeBtn.onmouseleave = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        removeToolbarHighlight();
+        homeBtn.style.filter = "brightness(100%)";
+    };
+
+    homeBtn.ontouchstart = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        goHome();
+    };
+    homeBtn.ontouchmove = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!settingsButton.hidden)
+            return;
+        toolbarHighlightItem(0);
+    };
+    homeBtn.ontouchend = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
         removeToolbarHighlight();
         homeBtn.style.filter = "brightness(100%)";
     };
@@ -273,7 +305,7 @@ function setUpToolbar() {
 
                 if (doingLeft) {
                     if (params.boardStyle == 'ToolbarBottom')
-                        currentY = (rows + 1) - 1 - floor((rows + 1) * (windowHeight - e.y) / leftButton.offsetHeight);
+                        currentY = (rows + 1) - 1 - floor((rows + 1) * (layoutViewport.offsetHeight - e.y) / leftButton.offsetHeight);
                     else
                         currentY = (rows + 1) - 1 - floor((rows + 1) * (leftButton.offsetHeight - e.y) / leftButton.offsetHeight);
                     if (currentY == rows) {
@@ -285,7 +317,7 @@ function setUpToolbar() {
                     }
                 } else {
                     if (params.boardStyle == 'ToolbarBottom')
-                        currentY = (rows + 1) - 1 - floor((rows + 1) * (windowHeight - e.y) / rightButton.offsetHeight);
+                        currentY = (rows + 1) - 1 - floor((rows + 1) * (layoutViewport.offsetHeight - e.y) / rightButton.offsetHeight);
                     else
                         currentY = (rows + 1) - 1 - floor((rows + 1) * (rightButton.offsetHeight - e.y) / rightButton.offsetHeight);
 
@@ -313,7 +345,7 @@ function setUpToolbar() {
                         tmpX = floor(9 * (e.x - leftButton.offsetLeft) / leftButton.offsetWidth);
                     else
                         tmpX = floor(9 * (e.x - rightButton.offsetLeft) / rightButton.offsetWidth);
-                    tmpY = floor(9 * (windowHeight - e.y) / rightButton.offsetHeight);
+                    tmpY = floor(9 * (layoutViewport.offsetHeight - e.y) / rightButton.offsetHeight);
                 } else {
                     if (doingLeft)
                         tmpX = floor(9 * (e.x - leftButton.offsetLeft) / leftButton.offsetWidth);
@@ -379,23 +411,47 @@ function setUpToolbar() {
     backspace.style.position = "absolute";
     backspace.style.top = "0.5vh";
     backspace.style.left = "79.5vw";
-    backspace.style.height = "9vh";
+    backspace.style.height = "8.5vh";
     backspace.style.width = "7vw";
     backspace.style.borderColor = "black";
     backspace.style.backgroundColor = params.backgroundColour;
     backspace.style.backgroundImage = "url('images/backspace.png')";
     backspace.style.backgroundSize = "7vw 9vh";
     backspace.tabIndex = -1;
-    backspace.onmouseover = function () {
+    backspace.onmouseover = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
         if (!settingsButton.hidden)
             return;
         toolbarHighlightItem(2);
     };
-    backspace.onmouseleave = function () {
+    backspace.onmouseleave = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
         removeToolbarHighlight();
     };
-    backspace.onclick = function () {
+    backspace.onclick = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
         doBackspace();
+    };
+
+    backspace.ontouchmove = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+        if (!settingsButton.hidden)
+            return;
+    };
+    backspace.ontouchend = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+        removeToolbarHighlight();
+    };
+    backspace.ontouchstart = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+        doBackspace();
+        toolbarHighlightItem(2);
     };
     picomBar.appendChild(backspace);
 
@@ -404,22 +460,46 @@ function setUpToolbar() {
     clearDisplay.style.position = "absolute";
     clearDisplay.style.top = "0.5vh";
     clearDisplay.style.left = "88vw";
-    clearDisplay.style.height = "9vh";
+    clearDisplay.style.height = "8.5vh";
     clearDisplay.style.width = "7vw";
     clearDisplay.style.borderColor = "black";
     clearDisplay.style.background = params.backgroundColour;
     clearDisplay.style.backgroundImage = "url('images/clear.png')";
     clearDisplay.style.backgroundSize = "7vw 9vh";
     clearDisplay.tabIndex = -1;
-    clearDisplay.onmouseover = function () {
+    clearDisplay.onmouseover = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
         if (!settingsButton.hidden)
             return;
         toolbarHighlightItem(3);
     };
-    clearDisplay.onmouseleave = function () {
+    clearDisplay.onmouseleave = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
         removeToolbarHighlight();
     };
-    clearDisplay.onclick = function () {
+    clearDisplay.onclick = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+        doClear();
+    };
+
+    clearDisplay.ontouchmove = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+        if (!settingsButton.hidden)
+            return;
+        toolbarHighlightItem(3);
+    };
+    clearDisplay.ontouchend = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+        removeToolbarHighlight();
+    };
+    clearDisplay.ontouchstart = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
         doClear();
     };
     picomBar.appendChild(clearDisplay);
@@ -428,7 +508,7 @@ function setUpToolbar() {
     editArea.style.position = "absolute";
     editArea.style.top = ".25vh";
     editArea.style.left = "18.5vw";
-    editArea.style.height = "9vh";
+    editArea.style.height = "8vh";
     editArea.style.width = "55vw";
     editArea.style.borderRadius = "0vh";
     editArea.style.borderStyle = 'inset';
@@ -436,18 +516,62 @@ function setUpToolbar() {
     editArea.width = 1000;
     editArea.height = 150;
     editArea.tabIndex = -1;
-    editArea.onclick = function () {
+    editArea.onclick = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
         doSpeak();
     };
-    editArea.onmouseover = function () {
+    editArea.onmousedown = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    editArea.onmouseup = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    editArea.onmouseover = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
         if (!settingsButton.hidden)
             return;
         toolbarHighlightItem(1);
     };
-    editArea.onmouseleave = function () {
+    editArea.onmouseleave = function (event) {
         removeToolbarHighlight();
     };
+
+    editArea.ontouchstart = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+        doSpeak();
+    };
+    editArea.ontouchend = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    editArea.ontouchmove = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+        if (!settingsButton.hidden)
+            return;
+        toolbarHighlightItem(1);
+    };
+
     picomBar.appendChild(editArea);
+
+    picomBar.ontouchstart = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    };
+    picomBar.ontouchend = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    picomBar.ontouchmove = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    };
+
     picomBar.tabIndex = -1;
     ctx = editArea.getContext("2d");
     //    ctx.translate(1000, 75);
@@ -457,10 +581,60 @@ function setUpToolbar() {
     //    ctx.fillText("TEST", 10, 10);
     //    ctx.restore();
 
+    var speakBtn = document.createElement("button");
+    speakBtn.style.position = "absolute";
+    speakBtn.style.top = "1vh";
+    speakBtn.style.left = "68vw";
+    speakBtn.style.height = "7.5vh";
+    speakBtn.style.width = "6vw";
+    speakBtn.style.border = "none";
+    speakBtn.style.backgroundImage = "url('images/speak.png')";
+    speakBtn.style.backgroundSize = "6vw 7.5vh";
+    speakBtn.style.opacity = .5;
+    speakBtn.onclick = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+        doSpeak();
+    }
+    speakBtn.onmousedown = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+        toolbarHighlightItem(1);
+    }
+    speakBtn.onmouseup = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    speakBtn.onmouseover = function (event) {
+        if (!settingsButton.hidden)
+            return;
+        toolbarHighlightItem(1);
+    };
+
+    speakBtn.ontouchstart = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+        toolbarHighlightItem(1);
+        doSpeak();
+    }
+    speakBtn.ontouchend = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    speakBtn.ontouchmove = function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+        if (!settingsButton.hidden)
+            return;
+        toolbarHighlightItem(1);
+    };
+
+    picomBar.appendChild(speakBtn);
+
     for (var i = 0; i < 10; i++) {
         btnsLabels[i] = document.createElement("label");
         btnsLabels[i].style.position = "absolute";
-        btnsLabels[i].style.top = "7.9vh";
+        btnsLabels[i].style.top = "7.0vh";
         btnsLabels[i].style.left = 18.7 + i * 5.5 + "vw";
         btnsLabels[i].style.height = "1.9vh";
         btnsLabels[i].style.width = "5.5vw";
@@ -486,8 +660,10 @@ function toolbarHighlightItem(i) {
     currentX = i;
     highlightRow = -1;
     backgroundButton.style.backgroundColor = params.backgroundColour;
+    homeBtn.style.backgroundColor = params.backgroundColour;
     switch (i) {
         case 0:
+            homeBtn.style.backgroundColor = "white";
             if (homeBtn.style.left == "5vw")
                 highlightButton.style.left = "4.5vw";
             else
@@ -499,7 +675,7 @@ function toolbarHighlightItem(i) {
             editArea.style.borderWidth = "thick";
             highlightButton.style.left = "18vw";
             highlightButton.style.width = "56.8vw";
-            editArea.style.background = "rgb(245,245,245)";
+            //            editArea.style.background = "rgb(245,245,245)";
             break;
         case 2:
             backspace.style.backgroundColor = "white";

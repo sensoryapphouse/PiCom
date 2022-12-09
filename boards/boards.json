@@ -4,12 +4,12 @@
     "boards": {
         "0": "communikate-20.obz",
         "1": "communikate-12.obz",
-        "2": "project-core.obf",
+        "2": "project-core.obz",
         "3": "quick-core-24.obz",
         "4": "quick-core-60.obz",
         "5": "quick-core-112.obz",
-        "6": "yes-no.obf",
-        "7": "feelings.obf",
+        "6": "yes-no.obz",
+        "7": "feelings.obz",
         "8": "blank.obz"
     }
 }

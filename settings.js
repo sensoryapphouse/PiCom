@@ -3,7 +3,7 @@ var jsonString;
 var boardsJson;
 var boardNames = [];
 var switchInput = "Press"; // save "Press", "Release" or "Hover" for params.selectWith and params.selectWithSwitchScan (later is for scanning and Cursor Keys/Dpad)
-
+var guiBoardName;
 
 Notiflix.Confirm.init({
     className: 'notiflix-confirm',
@@ -36,7 +36,7 @@ Notiflix.Confirm.init({
 });
 var defaultParams = {
     //    isFullscreen: false,
-    boardName: "communikate-20.obz",
+    boardName: "quick-core-24.obz",
     boardStyle: 'ToolbarBottom', // 0: no toolbar. 1: gap at top. 2: gap at bottom.
     toolbarSize: 'medium',
     textPos: 'top', // 0: text at top. 1: text at bottom. 2: no text
@@ -90,16 +90,19 @@ function resetParams() {
     localStorage.clear();
     params = defaultParams;
     loadFileObj();
-    boardsJson = loadJSON("boards/boards.json", boardsLoaded);
+    setTimeout(function () {
+        boardsJson = loadJSON("boards/boards.json", boardsLoaded);
+    }, 50);
 }
 
 function loadParams() {
     try {
         //        throw "null";
-        var s = newObject = window.localStorage.getItem("PiCom");
+        var s = window.localStorage.getItem("PiCom");
         if (s == null)
             throw "null";
         params = JSON.parse(s);
+        boardsJson = loadJSON("boards/boards.json", boardsLoaded);
         loadFileObj();
         if (params.tooltips == null) {
             throw "null";
@@ -107,7 +110,6 @@ function loadParams() {
         if (params.buttonEditor == null || params.chkHideSettings == null) {
             throw "null";
         }
-        boardsJson = loadJSON("boards/boards.json", boardsLoaded);
     } catch (e) {
         resetParams();
     };
@@ -121,11 +123,13 @@ function loadParams() {
 var saveFile;
 
 async function doSaveFile() {
-    const fileHandleOrUndefined = await get("file");
+    //    const fileHandleOrUndefined = await get("file");
     communicatorChanged = false;
-    var name = "MyPicomBoard.obf";
-    if (boardDiskFormat == 2)
-        name = "MyPicomBoard.obz";
+    var name = currentCommunicatorName;
+    if (boardDiskFormat == 2) {
+        var text = JSON.stringify(manifestInfo, null, ' ')
+        zip.file("manifest.json", text);
+    }
     if (typeof showSaveFilePicker === 'function') {
         saveFile = await window.showSaveFilePicker({
             suggestedName: name,
@@ -137,6 +141,7 @@ async function doSaveFile() {
             }],
         });
     } else {
+        saveFileObj(null);
         var text = "";
         if (name.includes(".obf")) {
             text = JSON.stringify(myBoard, null, ' ');
@@ -153,6 +158,7 @@ async function doSaveFile() {
             setTimeout(function () {
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);
+                idbKeyval.set("type", 'obf');
             }, 0);
         } else { // obz
             zip.generateAsync({
@@ -172,13 +178,18 @@ async function doSaveFile() {
                     setTimeout(function () {
                         document.body.removeChild(a);
                         window.URL.revokeObjectURL(url);
+                        var readWriteMode = typeof IDBTransaction.READ_WRITE == "undefined" ? "readwrite" : IDBTransaction.READ_WRITE;
+                        var transaction = db.transaction(["PiComFileStore"], readWriteMode);
+                        var put = transaction.objectStore("PiComFileStore").put(content, 'blob');
+                        put.onerror = function (event) {
+                            console.log("Error csaving object in IndexedDB database");
+                        };
+                        idbKeyval.set("type", 'obz');
                     }, 0);
                 });
         }
-
         return;
     }
-
 
     const file = await saveFile.getFile();
     if (typeof saveFile !== "undefined") {
@@ -186,16 +197,32 @@ async function doSaveFile() {
             const writable = await saveFile.createWritable();
             //  myBoard.buttons[0].label = "Abc"; // chaamge button text
             if (saveFile.name.includes(".obf")) {
+                saveFileObj(null);
                 var myJSON = JSON.stringify(myBoard, null, ' ');
                 await writable.write(myJSON);
                 await writable.close();
+                await idbKeyval.set("type", 'obf');
+                var readWriteMode = typeof IDBTransaction.READ_WRITE == "undefined" ? "readwrite" : IDBTransaction.READ_WRITE;
+                var transaction = db.transaction(["PiComFileStore"], readWriteMode);
+                var put = transaction.objectStore("PiComFileStore").put(myJSON, 'string');
+                put.onerror = function (event) {
+                    console.log("Error saving obf in IndexedDB database");
+                };
             } else { // obz
                 zip.generateAsync({
                         type: "blob"
                     })
                     .then(async function (content) {
+                        saveFileObj(null);
                         await writable.write(content);
                         await writable.close();
+                        var readWriteMode = typeof IDBTransaction.READ_WRITE == "undefined" ? "readwrite" : IDBTransaction.READ_WRITE;
+                        var transaction = db.transaction(["PiComFileStore"], readWriteMode);
+                        var put = transaction.objectStore("PiComFileStore").put(content, 'blob');
+                        put.onerror = function (event) {
+                            console.log("Error csaving obz in IndexedDB database");
+                        };
+                        await idbKeyval.set("type", 'obz');
                     });
             }
         }
@@ -203,8 +230,28 @@ async function doSaveFile() {
     //    }
 }
 
+function showSplashButtons() {
+    if (!splash.hidden) {
+        settingsSplash.hidden = false;
+        startSplash.hidden = false;
+        guideSplash.hidden = false;
+        helpSplash.hidden = false;
+    }
+}
+
 var fileObj;
 async function loadIt() {
+    console.log("Load it");
+    showSplashButtons();
+    try {
+        if (fileObj != null)
+            currentCommunicatorName = fileObj.name.substring(fileObj.name.indexOf('/') + 1);
+    } catch (e) {
+        currentCommunicatorName = "Export";
+    }
+    try {
+        guiBoardName.name = "Current File: " + currentCommunicatorName;
+    } catch (e) {}
     if (fileObj.name.includes(".obf")) { // single file
         boardDiskFormat = 0;
         let reader = new FileReader();
@@ -212,7 +259,6 @@ async function loadIt() {
             //                let text = e.target.result;
             //                document.querySelector("#file-contents").textContent = text;
             myBoard = JSON.parse(e.target.result);
-            currentBoardName = fileObj.name.substring(fileObj.name.indexOf('/') + 1);
             jsonLoaded();
             showTabs(0);
             //                    started = true;
@@ -220,6 +266,7 @@ async function loadIt() {
         reader.readAsText(fileObj);
     } else { // obz zip file
         boardDiskFormat = 2;
+        zip = null;
         zip = new JSZip();
         zip.loadAsync(fileObj).then(function (zipinfo) {
             console.log(zipinfo);
@@ -240,13 +287,53 @@ async function loadIt() {
     }
 }
 
+function blobToFile(theBlob, fileName) {
+    //A Blob() is almost a File() - it's just missing the two properties below which we will add
+    theBlob.lastModifiedDate = new Date();
+    theBlob.name = fileName;
+    return theBlob;
+}
+
 async function loadFileObj() {
     //    await idbKeyval.set("file", obj);
     try {
         fileObj = await idbKeyval.get("file");
-        if (fileObj == null || fileObj == undefined) {
+        if (fileObj == -1) {
             loadBoard('boards/' + params.boardName);
+            console.log("Loading from default communicators");
+        } else if (fileObj == null || fileObj == undefined) {
+            var filetype = await idbKeyval.get("type");
+            var readWriteMode = typeof IDBTransaction.READ_WRITE == "undefined" ? "readwrite" : IDBTransaction.READ_WRITE;
+            var transaction = db.transaction(["PiComFileStore"], readWriteMode);
+            if (filetype == 'obz') {
+                transaction.objectStore("PiComFileStore").get("blob").onsuccess = function (event) {
+                    if (event.target.result == undefined) {
+                        loadBoard('boards/' + params.boardName);
+                        console.log("Loading from default communicators as no indexedDb version");
+                    } else {
+                        console.log("Loading obz from indexedDb");
+                        var obzFile = event.target.result;
+                        fileObj = blobToFile(event.target.result, "Test.obz");
+                        loadIt();
+                    }
+                };
+            } else {
+                transaction.objectStore("PiComFileStore").get("string").onsuccess = function (event) {
+                    showSplashButtons();
+                    if (event.target.result == undefined) {
+                        loadBoard('boards/' + params.boardName);
+                        console.log("Loading from default communicators as no indexedDb version");
+                    } else {
+                        console.log("Loading obf from indexedDb");
+                        myBoard = JSON.parse(event.target.result);
+                        jsonLoaded();
+                        showTabs(0);
+                    }
+                };
+            }
+            //            loadBoard('boards/' + params.boardName);
         } else {
+            console.log("Loading from fileObject (exported one)");
             loadIt();
         }
         //        showTabs(0);
@@ -279,7 +366,7 @@ function showEdit() {
         removeToolbarHighlight();
         refreshBoard++;
     }
-    buttonPanel.hidden = false;
+    //    buttonPanel.hidden = false;
     updateEditPanel();
 }
 
@@ -298,20 +385,99 @@ function showSettings() {
 
 function askToSave2() {
     if (communicatorChanged) {
-        Notiflix.Confirm.show('Picom', 'Current communicator has been changed. Do you want to save those changes?', 'ye', 'noo', function () {
+        Notiflix.Confirm.show('Picom', 'Current communicator has been changed. Do you want to save those changes? (2)', 'yes', 'no', function () {
             needToSave();
+            loadBoard(s);
+            saveFileObj(null);
         }, function () {
-            var fileLoad2 = document.getElementById('file-input').click();
+            loadBoard(s);
+            saveFileObj(null);
         });
-
     }
     communicatorChanged = false;
 }
 
+var share = {
+    Share_Board: async function () {
+        gui.hide();
+        setTimeout(hideSettings, 500);
+
+        function hideSettings() {
+            showGUI = 0;
+        }
+        //        const shareData = {
+        //            title: 'MDN',
+        //            text: 'Learn web development on MDN!',
+        //            url: 'https://developer.mozilla.org'
+        //        }
+        //        try {
+        //            await navigator.share(shareData);
+        //            //                resultPara.textContent = 'MDN shared successfully';
+        //        } catch (err) {
+        //            console.log("Error: ", err);
+        //
+        //        }
+
+        var name = currentCommunicatorName;
+        var text = "";
+        if (name.includes(".obf")) {
+            text = JSON.stringify(myBoard, null, ' ');
+            var file2 = new Blob([text], {
+                type: "text/plain",
+                name: name
+            });
+            shareFile(file2);
+        } else { // obz
+            zip.generateAsync({
+                    type: "blob"
+                })
+                .then(async function (content) {
+                    var myBlob = new Blob([content], {
+                        type: "text/plain"
+                    });
+                    var file2 = new File([myBlob], name);
+                    await shareFile(file2);
+                    communicatorChanged = false;
+                    saveFileObj(null);
+                    var readWriteMode = typeof IDBTransaction.READ_WRITE == "undefined" ? "readwrite" : IDBTransaction.READ_WRITE;
+                    var transaction = db.transaction(["PiComFileStore"], readWriteMode);
+                    var put = transaction.objectStore("PiComFileStore").put(content, 'blob');
+                    put.onerror = function (event) {
+                        console.log("Error csaving object in IndexedDB database");
+                    };
+                });
+        }
+
+        showTabs(0);
+    }
+};
+
+
+
+async function shareFile(file) {
+    const files = [];
+    files.push(file);
+    if (navigator.canShare({
+            files
+        })) {
+        try {
+            await navigator.share({
+                files,
+                title: 'PiCom',
+                text: 'Share communicator board(s)'
+            })
+            //            output.textContent = 'Shared!'
+        } catch (error) {
+            //            output.textContent = `Error: ${error.message}`
+        }
+    } else {
+        //        output.textContent = `Your system doesn't support sharing these files.`
+    }
+}
+
 function setUpGUI() {
-    loadParams();
-    setUpPanel();
     setUpGUI2();
+    setUpPanel();
     //    showSettings2();
 
     gui = new dat.GUI({
@@ -324,59 +490,6 @@ function setUpGUI() {
         X: function () {
             showTabs(0);
             saveParams();
-        }
-    };
-
-    var load = {
-        Load_Board_From_File: function () {
-            gui.hide();
-            setTimeout(hideSettings, 500);
-
-            function hideSettings() {
-                showGUI = 0;
-            }
-            saveParams();
-            if (communicatorChanged)
-                askToSave2();
-            else {
-                var fileLoad1 = document.getElementById('file-input').click();
-            }
-            showTabs(0);
-        }
-    };
-    //
-    //    var editButton = {
-    //        Edit_Button: function () {
-    //            showEdit();
-    //        }
-    //    };
-
-    document.getElementById('file-input').addEventListener('change', function (evt) {
-        //        var tgt = evt.target || window.event.srcElement,
-        //            files = tgt.files;
-
-        fileObj = document.getElementById('file-input').files[0];
-        //                loadBoard(fileObj.name,fileObj);
-        saveFileObj(fileObj); // remember file object
-        loadIt();
-    });
-
-    var save = {
-        Save_Board_To_File: function () {
-            gui.hide();
-            setTimeout(hideSettings, 500);
-
-            function hideSettings() {
-                guiVisible = false;
-                showGUI = 0;
-            }
-            saveParams();
-            if (boardDiskFormat == 0) // obf
-                boardDiskFormat = 0;
-            else if (boardDiskFormat == 2) // obz
-                boardDiskFormat = 2;
-            doSaveFile();
-            showTabs(0);
         }
     };
 
@@ -522,13 +635,22 @@ function setUpGUI() {
         refreshBoard = 1;
     }
 
-    var boards = gui.add(params, 'boardName', boardNames).name(strPiComBoards).onChange(function () {
+    guiBoardName = gui.addFolder("Current file: " + currentCommunicatorName);
+    var boards = guiBoardName.add(params, 'boardName', boardNames).name(strPiComBoards).onChange(function () {
         askToSave('boards/' + params.boardName);
-        //        loadBoard();//        saveFileObj(null);
+        //        loadBoard();
+        //        saveFileObj(null);
     });
+    guiBoardName.open();
 
     var inputOptions = gui.addFolder(strInputOptions);
-    var inputMethod = inputOptions.add(params, 'inputMethod', ['Touch/Mouse', 'Touchpad', 'Analog Joystick', 'Cursor Keys/Dpad', 'MouseWheel', 'Switches', strFace, strFaceExpressions
+    var inputMethod;
+    if (deviceOptions == 'small')
+        inputMethod = inputOptions.add(params, 'inputMethod', ['Touch/Mouse', 'Touchpad', 'Analog Joystick', 'Cursor Keys/Dpad', 'MouseWheel', 'Switches'
+                                   // , 'Face', 'Eyes'
+                                   ]).name(strInputMethod).onChange(setOptions);
+    else
+        inputMethod = inputOptions.add(params, 'inputMethod', ['Touch/Mouse', 'Touchpad', 'Analog Joystick', 'Cursor Keys/Dpad', 'MouseWheel', 'Switches', strFace, strFaceExpressions
                                    // , 'Face', 'Eyes'
                                    ]).name(strInputMethod).onChange(setOptions);
 
@@ -721,19 +843,19 @@ function setUpGUI() {
         switch (params.boardStyle) {
             case 'Fullscreen':
                 picomBar.hidden = true;
-                gui_container.style.top = '0vh';
+                gui_container.style.top = '5vh';
                 break;
             case 'ToolbarTop':
                 picomBar.hidden = false;
                 picomBar.style.top = '0vh';
                 picomBar.style.bottom = '90vh';
-                gui_container.style.top = '0vh';
+                gui_container.style.top = '5vh';
                 break;
             case 'ToolbarBottom':
                 picomBar.hidden = false;
                 picomBar.style.top = '90vh';
                 picomBar.style.bottom = '0vh';
-                gui_container.style.top = '0vh';
+                gui_container.style.top = '5vh';
                 break;
         }
         if (params.boardStyle == 'Fullscreen') // full screen
@@ -777,32 +899,33 @@ function setUpGUI() {
     changeVoice(params.currentVoice);
     var speechSettings = gui.addFolder(strSpeech);
 
+    const voices = speechSynthesis.getVoices()
     var speechList = [];
-    for (i = 0; i < speech.voices.length; i++)
-        speechList[i] = speech.voices[i].name + ": " + speech.voices[i].lang;
+    for (i = 0; i < voices.length; i++)
+        speechList[i] = voices[i].name + ": " + voices[i].lang;
 
     speechSettings.add(params, 'currentVoice', speechList).name(strVoice).onChange(
         function () {
             changeVoice(params.currentVoice);
-            speech.stop();
+            speech.cancel();
             speech.speak("Hello");
             //            speechSettings.close();
         });
     var pitch = speechSettings.add(params, 'voicePitch', 0.1, 2.0, .1).name(strPitch).onChange(
         function () {
-            speech.stop();
+            speech.cancel();
             speech.setPitch(params.voicePitch);
             speech.speak("Hello");
         });;
     var rate = speechSettings.add(params, 'voiceRate', 0.1, 2.0, .1).name(strRate).onChange(
         function () {
-            speech.stop();
+            speech.cancel();
             speech.setRate(params.voiceRate);
             speech.speak("Hello");
         });;
     var volume = speechSettings.add(params, 'voiceVolume', 0.0, 1.0, .1).name(strVolume).onChange(
         function () {
-            speech.stop();
+            speech.cancel();
             speech.setVolume(params.voiceVolume);
             speech.speak("Hello");
         });
@@ -811,22 +934,24 @@ function setUpGUI() {
     speechSettings.add(params, 'vocaliseLinkButtons').name(strSpeakOnLink);
     var advancedSettings = gui.addFolder(strAdvanced);
     advancedSettings.add(params, 'autoReturnToHome').name(strAutoHome);
-    advancedSettings.add(params, 'tooltips').name("Show Tooltips");
+    advancedSettings.add(params, 'tooltips').name("Show Tooltips").onChange(function () {
+        if (params.tooltips)
+            root.style.setProperty('--change', 70);
+        else
+            root.style.setProperty('--change', 0);
+    });
+
     advancedSettings.add(params, 'buttonEditor').name("Button Editor").onChange(function () {
         editButton.hidden = !params.buttonEditor;
     });
 
     advancedSettings.add(params, 'chkHideSettings').name("Hide Settings Button").onChange(function () {
-        //        settingsSplash.hidden = params.chkHideSettings;
+        settingsSplash.hidden = params.chkHideSettings;
     });
 
     setOptions();
     gui.hide();
     guiVisible = false;
-
-    advancedSettings.add(load, 'Load_Board_From_File').name(strLoadBoard);
-    advancedSettings.add(save, 'Save_Board_To_File').name(strSaveBoard);
-    //    advancedSettings.add(editButton, 'Edit_Button').name(strEditButton);
 
     document.oncontextmenu = function (e) { // three right clicks to show menu
         e.preventDefault();

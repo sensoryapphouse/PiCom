@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1.35021,0,0,1.35021,-11.2278,-11.2278)">
+        <g id="layer1">
+            <g id="g1354">
+                <path id="path1373" d="M32,8.631C19.113,8.631 8.631,19.113 8.631,32C8.631,44.887 19.113,55.369 32,55.369C44.887,55.369 55.369,44.887 55.369,32C55.369,19.113 44.887,8.631 32,8.631Z" style="fill:url(#_Linear1);fill-rule:nonzero;"/>
+                <path id="path1339" d="M54.5,32C54.5,44.42 44.42,54.5 32,54.5C19.58,54.5 9.5,44.42 9.5,32C9.5,19.58 19.58,9.5 32,9.5C44.42,9.5 54.5,19.58 54.5,32Z" style="fill:url(#_Radial2);fill-rule:nonzero;"/>
+                <path id="path1341" d="M32.017,9.156C22.575,9.156 14.505,14.865 11.062,22.969C16.006,25.802 21.393,27.856 27.181,27.594C32.755,27.28 37.554,23.531 43.237,23.812C47.451,23.716 52.244,25.294 54.489,29C53.143,17.847 43.658,9.156 32.017,9.156Z" style="fill:url(#_Radial3);fill-rule:nonzero;"/>
+                <path id="path2827" d="M32,8.625C19.113,8.625 8.625,19.113 8.625,32C8.625,44.887 19.113,55.375 32,55.375C44.887,55.375 55.375,44.887 55.375,32C55.375,19.113 44.887,8.625 32,8.625ZM32,9.5C44.42,9.5 54.5,19.58 54.5,32C54.5,44.42 44.42,54.5 32,54.5C19.58,54.5 9.5,44.42 9.5,32C9.5,19.58 19.58,9.5 32,9.5Z" style="fill:url(#_Linear4);fill-rule:nonzero;"/>
+                <path id="text1353" d="M32.557,39.006C32.693,35.836 33.1,35.066 35.908,32.892C39.396,30.22 39.803,29.903 40.12,29.631C41.706,28.272 42.611,26.189 42.611,24.015C42.611,19.078 38.626,15.953 32.285,15.953C26.307,15.953 22.095,18.852 22.095,23.019C22.095,25.464 23.906,27.231 26.397,27.231C28.707,27.231 30.292,25.736 30.292,23.607C30.292,22.385 29.794,21.388 28.843,20.664C28.028,20.029 27.983,19.984 27.983,19.667C27.983,19.033 28.979,18.535 30.383,18.535C33.1,18.535 34.64,20.347 34.64,23.517C34.64,25.374 33.961,27.684 32.829,29.722C30.338,34.16 29.975,35.066 29.975,37.104C29.975,37.557 30.021,38.282 30.111,39.006L32.557,39.006M31.425,41.497C29.07,41.497 27.167,43.4 27.167,45.755C27.167,48.064 29.07,50.012 31.379,50.012C33.78,50.012 35.682,48.11 35.682,45.755C35.682,43.4 33.78,41.497 31.425,41.497" style="fill:url(#_Linear5);fill-rule:nonzero;"/>
+            </g>
+        </g>
+    </g>
+    <defs>
+        <linearGradient id="_Linear1" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(53.47,55.0293,-55.0293,53.47,10.018,8.6307)"><stop offset="0" style="stop-color:rgb(35,107,13);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(10,34,5);stop-opacity:1"/></linearGradient>
+        <radialGradient id="_Radial2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0.693385,28.2177,-26.8988,0.661292,23.4501,22.2281)"><stop offset="0" style="stop-color:rgb(46,220,50);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(17,102,29);stop-opacity:1"/></radialGradient>
+        <radialGradient id="_Radial3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0.31416,30.217,-50.71,0.51667,26.4584,14.8002)"><stop offset="0" style="stop-color:rgb(230,230,230);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(17,102,29);stop-opacity:0"/></radialGradient>
+        <linearGradient id="_Linear4" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(53.47,55.0293,-55.0293,53.47,10.0152,8.62786)"><stop offset="0" style="stop-color:rgb(35,107,13);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(10,34,5);stop-opacity:1"/></linearGradient>
+        <linearGradient id="_Linear5" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(10.138,29.893,-29.893,10.138,23.001,19.1808)"><stop offset="0" style="stop-color:white;stop-opacity:1"/><stop offset="1" style="stop-color:rgb(200,200,200);stop-opacity:1"/></linearGradient>
+    </defs>
+</svg>

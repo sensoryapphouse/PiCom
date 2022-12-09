@@ -9,10 +9,19 @@ var tchCount;
 var multiTouch = false;
 
 function touchStarted(event) {
+    if (!closeButton.hidden)
+        return;
     console.log("Touch started");
+    if (smallPortrait) {
+        currentX = floor(map(event.touches[0].pageX, 0, layoutViewport.offsetWidth, 0, rows));
+        currentY = floor(map(event.touches[0].pageY, offsetForBoard, windowHeight, 0, columns));
+    } else {
+        currentX = floor(map(event.touches[0].pageX, 0, layoutViewport.offsetWidth, 0, columns));
+        currentY = floor(map(event.touches[0].pageY, offsetForBoard, windowHeight, 0, rows));
+    }
     if (event.touches.length > 1) {
         multiTouch = true;
-        if (event.touches[0].pageX < windowWidth * .25 && event.touches[0].pageY < windowHeight * .25) {
+        if (event.touches[0].pageX < layoutViewport.offsetWidth * .25 && event.touches[0].pageY < windowHeight * .25) {
             showGUI++;
             console.log("Two fingers: ", showGUI)
             if (showGUI > 2) {
@@ -26,8 +35,7 @@ function touchStarted(event) {
         } else
             showGUI = 0;
         return;
-    }
-    else
+    } else
         multiTouch = false;
     var element = document.elementsFromPoint(event.touches[0].pageX, event.touches[0].pageY);
     tchCount = element.length;
@@ -46,6 +54,8 @@ function touchStarted(event) {
 }
 
 function touchMoved(event) {
+    if (!closeButton.hidden)
+        return;
     console.log("Touch moved");
     var element = document.elementsFromPoint(event.touches[0].pageX, event.touches[0].pageY);
     tchCount = element.length;
@@ -64,6 +74,8 @@ function touchMoved(event) {
 }
 
 function touchEnded(event) {
+    if (!closeButton.hidden)
+        return;
     console.log("Touch ended");
     if (event.touches.length > 1 || multiTouch) {
         return;
@@ -86,6 +98,8 @@ function touchEnded(event) {
 
 function mousePressed(event) {
     if (!splash.hidden)
+        return;
+    if (!closeButton.hidden)
         return;
     if (event.button == 2 || !settingsButton.hidden)
         return;
@@ -119,6 +133,8 @@ function mousePressed(event) {
 
 function mouseReleased(event) {
     if (!splash.hidden)
+        return;
+    if (!closeButton.hidden)
         return;
     clearTimeout(tmrAccept);
     if (event.button == 2 || !settingsButton.hidden)
@@ -172,26 +188,28 @@ function mseEvent(event) {
     }
     var xIndex;
     var yIndex;
+
     if (params.boardStyle == 'ToolbarTop') {
         if (smallPortrait) {
-            xIndex = floor(map(event.pageX, 0, windowWidth, 0, rows));
-            yIndex = floor(map(event.pageY, offsetForBoard, windowHeight, 0, columns));
+            xIndex = floor(map(event.pageX, 0, layoutViewport.offsetWidth, 0, rows));
+            yIndex = floor(map(event.pageY, offsetForBoard, layoutViewport.offsetHeight, 0, columns));
         } else {
-            xIndex = floor(map(event.pageX, 0, windowWidth, 0, columns));
-            yIndex = floor(map(event.pageY, offsetForBoard, windowHeight, 0, rows));
+            xIndex = floor(map(event.pageX, 0, layoutViewport.offsetWidth, 0, columns));
+            yIndex = floor(map(event.pageY, offsetForBoard, layoutViewport.offsetHeight, 0, rows));
         }
         console.log(floor(xIndex), floor(yIndex));
     } else {
         if (smallPortrait) {
-            xIndex = map(event.pageX, 0, windowWidth, 0, rows);
+            xIndex = map(event.pageX, 0, layoutViewport.offsetWidth, 0, rows);
             yIndex = map(event.pageY, 0, hWindow, 0, columns);
         } else {
-            xIndex = map(event.pageX, 0, windowWidth, 0, columns);
+            xIndex = map(event.pageX, 0, layoutViewport.offsetWidth, 0, columns);
             yIndex = map(event.pageY, 0, hWindow, 0, rows);
         }
         console.log(floor(xIndex), floor(yIndex));
 
     }
+
     xIndex = floor(xIndex);
     yIndex = floor(yIndex);
     console.log(xIndex, yIndex);
@@ -203,11 +221,13 @@ function mseEvent(event) {
 }
 
 function mouseDragged(event) {
+    if (!closeButton.hidden)
+        return;
     mouseMoved(event);
 }
 
 function mouseMoved(event) {
-    if (!buttonPanel.hidden)
+    if (!closeButton.hidden)
         return;
     switch (params.inputMethod) {
         case 'Touch/Mouse':
@@ -228,10 +248,10 @@ function mouseMoved(event) {
         return;
     if (params.boardStyle == 'ToolbarTop') {
         if (smallPortrait) {
-            currentX = floor(map(event.pageX, 0, windowWidth, 0, rows));
+            currentX = floor(map(event.pageX, 0, layoutViewport.offsetWidth, 0, rows));
             currentY = floor(map(event.pageY, offsetForBoard, windowHeight, 0, columns));
         } else {
-            currentX = floor(map(event.pageX, 0, windowWidth, 0, columns));
+            currentX = floor(map(event.pageX, 0, layoutViewport.offsetWidth, 0, columns));
             currentY = floor(map(event.pageY, offsetForBoard, windowHeight, 0, rows));
         }
         if (currentX != lastX || currentY != lastY) {
@@ -247,10 +267,10 @@ function mouseMoved(event) {
         }
     } else {
         if (smallPortrait) {
-            currentX = floor(map(event.pageX, 0, windowWidth, 0, rows));
+            currentX = floor(map(event.pageX, 0, layoutViewport.offsetWidth, 0, rows));
             currentY = floor(map(event.pageY, offsetForBoard, hWindow, 0, columns));
         } else {
-            currentX = floor(map(event.pageX, 0, windowWidth, 0, columns));
+            currentX = floor(map(event.pageX, 0, layoutViewport.offsetWidth, 0, columns));
             currentY = floor(map(event.pageY, offsetForBoard, hWindow, 0, rows));
         }
         if (currentX != lastX || currentY != lastY) {
@@ -269,8 +289,13 @@ function mouseMoved(event) {
                 }, params.acceptanceDelayHover * 1000);
             }
         }
-        if (currentY == rows)
-            currentX = floor(4 * currentX / columns);
+        if (smallPortrait) {
+            if (currentY == columns)
+                currentX = floor(4 * currentX / rows);
+        } else {
+            if (currentY == rows)
+                currentX = floor(4 * currentX / columns);
+        }
     }
     lastX = currentX;
     lastY = currentY;
@@ -321,6 +346,8 @@ function keyPressed() {
         case 13: // return
         case 51: // 3
         case 52: // 4
+            if (guiVisible)
+                return;
             if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     doClick(1);
@@ -333,6 +360,8 @@ function keyPressed() {
         case 32: // space
         case 49: // 1
         case 50: // 2
+            if (guiVisible)
+                return;
             if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     doClick(0);
@@ -348,7 +377,7 @@ function keyPressed() {
             //            }
             //            break;
         case 83: // S - settings
-            if (settingsButton.hidden == false)
+            if (guiVisible)
                 return;
             if (keyIsDown(SHIFT)) {
                 console.log("CTRL_S");
@@ -365,7 +394,7 @@ function keyPressed() {
             //            }
             //            break;
         case 27: // esc
-            if (!buttonPanel.hidden)
+            if (guiVisible)
                 closeEdit();
             guiVisible = false;
             showTabs(0);
@@ -404,12 +433,16 @@ function keyReleased() {
         case 13: // return
         case 51: // 3
         case 52: // 4
+            if (guiVisible)
+                return;
             if (switchInput == strRelease)
                 doClick(1);
             break;
         case 32: // space
         case 49: // 1
         case 50: // 2
+            if (guiVisible)
+                return;
             if (switchInput == strRelease)
                 doClick(0);
             break;
@@ -628,6 +661,13 @@ window.addEventListener('touchmove', e => {
     passive: false
 })
 
+function getButtonIndex() {
+    if (smallPortrait)
+        btnIndex = buttonIndexFromId(myBoard.grid.order[currentX][currentY]);
+    else
+        btnIndex = buttonIndexFromId(myBoard.grid.order[currentY][currentX]);
+}
+
 function moveDown() {
     currentY++;
     removeToolbarHighlight();
@@ -682,6 +722,7 @@ function moveDown() {
             }
         }
     }
+    getButtonIndex();
     console.log(currentX, currentY);
     updateEditPanel();
     refreshBoard++;
@@ -741,6 +782,7 @@ function moveUp() {
             }
         }
     }
+    getButtonIndex();
     console.log(currentX, currentY);
     updateEditPanel();
     refreshBoard++;
@@ -763,6 +805,7 @@ function moveLeft() {
         if (currentY == columns || currentY < 0) {
             toolbarHighlightItem(currentX);
         }
+
     } else {
         if (!buttonPanel.hidden && currentX < 0)
             currentX = 0;
@@ -776,6 +819,7 @@ function moveLeft() {
             toolbarHighlightItem(currentX);
         }
     }
+    getButtonIndex();
     console.log(currentX, currentY);
     updateEditPanel();
     refreshBoard++;
@@ -794,6 +838,7 @@ function moveRight() {
             toolbarHighlightItem(currentX);
         } else if (currentX >= rows)
             currentX = 0;
+
     } else {
         if (!buttonPanel.hidden && (currentX == columns))
             currentX = columns - 1;
@@ -804,6 +849,7 @@ function moveRight() {
         } else if (currentX >= columns)
             currentX = 0;
     }
+    getButtonIndex();
     console.log(currentX, currentY);
     updateEditPanel();
     refreshBoard++;
@@ -847,6 +893,7 @@ function moveLeftWrap() {
             }
         }
     }
+    getButtonIndex();
     refreshBoard++;
 }
 
@@ -879,5 +926,6 @@ function moveRightWrap() {
             moveDown();
         }
     }
+    getButtonIndex();
     refreshBoard++;
 }

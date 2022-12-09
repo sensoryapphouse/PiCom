@@ -9,7 +9,8 @@ body {
     top: 0vh;
     /* This centers our sketch horizontally. */
     justify-content: center;
-    z-index 500;
+    z-index: 500;
+    -webkit-user-select: none;
     /* This centers our sketch vertically. */
     /*    align-items: flex-end;*/
     /* flex-start; flex-end; */
@@ -38,15 +39,14 @@ settingsSplash {
     position: absolute;
     top: 0vw;
     right: 0vw;
-    width: 7vw;
-    height: 7vw;
-    border-radius: 3.5vw;
-    border: outset;
+    width: 5vw;
+    height: 5vw;
+    border: none;
     color: black;
     cursor: pointer;
-    background-color: rgb(240, 240, 240);
+    background-color: transparent;
     background-image: url(images/settings.png);
-    background-size: 7vw 7vw;
+    background-size: 5vw 5vw;
     background-position: left top;
     background-repeat: no-repeat;
     z-index: 16002;
@@ -66,15 +66,12 @@ startSplash {
     position: absolute;
     bottom: 2vw;
     right: 2vw;
-    width: 20vw;
-    height: 20vw;
-    border-radius: 10vw;
-    border: outset;
-    color: black;
+    width: 10vw;
+    height: 10vw;
     cursor: pointer;
-    background-color: rgb(240, 240, 240);
+    background-color: transparent;
     background-image: url(images/start.png);
-    background-size: 20vw 20vw;
+    background-size: 10vw 10vw;
     z-index: 10002;
     opacity: .8;
     -webkit-app-region: no-drag;
@@ -85,6 +82,52 @@ startSplash:hover {
 }
 
 startSplash:active {
+    opacity: 0.2;
+}
+
+helpSplash {
+    position: absolute;
+    left: 2vw;
+    bottom: 2vw;
+    width: 10vw;
+    height: 10vw;
+    cursor: pointer;
+    background-color: transparent;
+    background-image: url(images/help.svg);
+    background-size: 10vw 10vw;
+    z-index: 10002;
+    opacity: .8;
+    -webkit-app-region: no-drag;
+}
+
+helpSplash:hover {
+    opacity: 1.0;
+}
+
+helpSplash:active {
+    opacity: 0.2;
+}
+
+guideSplash {
+    position: absolute;
+    left: 2vw;
+    top: 2vw;
+    width: 10vw;
+    height: 10vw;
+    cursor: pointer;
+    background-color: transparent;
+    background-image: url(images/info.svg);
+    background-size: 10vw 10vw;
+    z-index: 10002;
+    opacity: .8;
+    -webkit-app-region: no-drag;
+}
+
+guideSplash:hover {
+    opacity: 1.0;
+}
+
+guideSplash:active {
     opacity: 0.2;
 }
 
@@ -138,7 +181,7 @@ startSplash:active {
 
 buttonPanel {
     position: absolute;
-    top: 4.5vh;
+    top: 9.5vh;
     left: 1vw;
     width: 35vw;
     height: 80vh;
@@ -154,7 +197,7 @@ buttonPanel {
 
 closeButton {
     position: absolute;
-    top: 0vh;
+    top: 5vh;
     left: 1vw;
     width: 5vw;
     height: 5vh;
@@ -177,9 +220,9 @@ closeButton {
 
 editButton {
     position: absolute;
-    top: 0vh;
-    left: 17.7vw;
-    width: 10vw;
+    top: 5vh;
+    left: 23.7vw;
+    width: 5vw;
     height: 5vh;
     border-radius: 1vh;
     border: groove;
@@ -201,9 +244,9 @@ editButton {
 
 settings {
     position: absolute;
-    top: 0vh;
+    top: 5vh;
     left: 4.3vw;
-    width: 7vw;
+    width: 10vw;
     height: 5vh;
     border-radius: 1vh;
     border: groove;
@@ -221,9 +264,9 @@ settings {
 
 boardButton {
     position: absolute;
-    top: 0vh;
-    left: 11vw;
-    width: 7vw;
+    top: 5vh;
+    left: 14vw;
+    width: 10vw;
     height: 5vh;
     border-radius: 1vh;
     border: groove;

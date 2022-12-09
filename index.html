@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
-<meta name="viewport" content="width=device-width, initial-scale=1.0 minimum-scale = 1.0">
 
 <head>
     <title>PiCom</title>
     <link href="MarcTooltips.css" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 minimum-scale = 1.0,viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <script src="libraries/MarcTooltips.min.js"></script>
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
@@ -16,6 +16,7 @@
     <script src="libraries/jszip.min.js" type="text/javascript"></script>
     <script src="libraries/recorder.js"></script>
     <script src="libraries/notiflix-confirm-aio-3.2.5.min.js"></script>
+    <script src="libraries/notiflix-loading-aio-3.2.5.min.js"></script>
     <script src="libraries/jeelizFaceExpressions.js"></script>
     <script src="gamepads.js"></script>
     <script src="face.js"></script>
@@ -133,6 +134,7 @@
 
     .dg .c select {
         font-size: 14px;
+        text-align: left;
     }
 
     .dg li:not(.folder) {
@@ -148,6 +150,8 @@
     <buttonPanel id="panel" class="img" hidden=true></buttonPanel>
     <settingsSplash class=" btn" hidden enabled></settingsSplash>
     <startSplash class=" btn" hidden enabled></startSplash>
+    <guideSplash class=" btn" enabled></guideSplash>
+    <helpSplash class=" btn" enabled></helpSplash>
     <splash class=" btn" enabled></splash>
     <editButton class=" btn" hidden enabled></editButton>
     <settings class=" btn" hidden enabled></settings>
@@ -156,7 +160,7 @@
     <toolbar id="picomBar"></toolbar>
     <canvas hidden=true id='jeelizFaceExpressionsCanvas'></canvas>
 
-
+    <script src="versions.js"></script>
     <script src="settings.js"> </script>
     <script src="settings2.js"> </script>
     <script src="toolbar.js"></script>
