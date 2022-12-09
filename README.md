@@ -1,2 +1,0 @@
-# PiCom
- See Picom.docx
