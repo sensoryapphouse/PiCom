@@ -32,14 +32,14 @@ function showSettings2() {
     columnsGui.setValue(columns);
 }
 
+
 function askToSave(s) {
     if (communicatorChanged) {
-        Notiflix.Confirm.show('Picom', 'Current communicator has been changed.  Do you want to save those changes?', 'Yes', 'No', function () {
+        Notiflix.Confirm.show('Picom', 'Save changed communicator?', 'yes', 'no', function () {
             needToSave();
-            loadBoard(s);
             saveFileObj(-1);
+
         }, function () {
-            loadBoard(s);
             saveFileObj(-1);
         });
     } else {
@@ -52,8 +52,9 @@ function askToSave(s) {
 function needToSave() {
     if (webViewIOS)
         shareFile();
-    else
+    else {
         doSaveFile();
+    }
 }
 
 var apply1 = { // set size
@@ -119,7 +120,6 @@ var apply1 = { // set size
     changeBoard: function () {}
 };
 
-
 function setUpGUI2() {
     gui2 = new dat.GUI({
         //        autoPlace: false,
@@ -144,19 +144,19 @@ function setUpGUI2() {
     var load = {
         Load_Board_From_File: function () {
             currentZipBoard = '';
-            gui.hide();
-            setTimeout(hideSettings, 500);
-
-            function hideSettings() {
-                showGUI = 0;
-            }
+            //            gui.hide();
+            //            setTimeout(hideSettings, 500);
+            //
+            //            function hideSettings() {
+            //                showGUI = 0;
+            //            }
             saveParams();
-            if (communicatorChanged)
-                askToSave2();
-            else {
+            if (communicatorChanged) {
+                askToSave2(currentCommunicatorName);
+            } else {
+                showTabs(0);
                 var fileLoad1 = document.getElementById('file-input').click();
             }
-            showTabs(0);
         }
     };
     //
@@ -173,7 +173,9 @@ function setUpGUI2() {
         fileObj = document.getElementById('file-input').files[0];
         //                loadBoard(fileObj.name,fileObj);
         saveFileObj(fileObj); // remember file object
+        currentZipBoard = "";
         loadIt();
+        this.value = null;
     });
 
     var save = {
@@ -238,6 +240,16 @@ function setUpGUI2() {
         }
     };
 
+    var apply4 = { // New Communicator
+        ChangeSymbolstoSAHstyle: function () {
+            changeSymbols();
+        },
+        MakeImagesLocal: function () {
+            embedImages();
+        }
+    };
+
+
     //    var c = gui2.add(close, 'X').name("🅇");
     gui2.__closeButton.hidden = true;
 
@@ -284,6 +296,13 @@ function setUpGUI2() {
     var t3 = newCom.add(apply3, 'Apply').name(strMakeNewCommunicator);
     t3.__li.style.textAlign = "center";
 
+
+    var globalChange = gui2.addFolder("Advanced");
+    var t4 = globalChange.add(apply4, 'ChangeSymbolstoSAHstyle').name("Change to SAH Symbols");
+    t4.__li.style.textAlign = "center";
+    var t5 = globalChange.add(apply4, 'MakeImagesLocal').name("Make Images Local");
+    t5.__li.style.textAlign = "center";
+
     //    newComName.setValue("name test");
     //    var s = newComName.object.name;
     openSaveShare.open();
@@ -299,8 +318,192 @@ function setUpGUI2() {
 // The functions below are used to rename boards and images to tidy up the names.
 // To use, uncomment the function calls and restart PiCom, ideally with console log visible.
 //
+
+var changeCount = 1;
+async function changeSymbols() {
+    Notiflix.Loading.dots('Loading...');
+    var s = manifestInfo.paths.boards;
+    var images = manifestInfo.paths.images;
+
+    var gotImages = false;
+    for (var p in images) {
+        gotImages = true;
+        var tmp = images[p].substring(images[p].lastIndexOf("/") + 1).replace(/\.[^/.]+$/, "").toLowerCase().trim();
+        try {
+            var i = loadImage('SAHsymbols/' + tmp + '.svg');
+            await timer(20);
+            if (i.width > 1) {
+                images[p] = 'SAHsymbols/' + tmp + '.svg';
+                console.log("Found: ", tmp);
+                Notiflix.Loading.change('Loading: ' + floor(changeCount / 10));
+                changeCount++;
+                pausecomp(20);
+                // now delete internal file
+                zip.remove(images[p]);
+            } else
+                console.log("Not Found: ", tmp);
+        } catch (e) {
+            console.log("Error");
+        }
+
+    }
+    manifestInfo.paths.images = images;
+
+    if (!gotImages) {
+        for (var i = 0; i < myBoard.buttons.length; i++) {
+            try {
+                var tmpS = 'SAHsymbols/' + myBoard.buttons[i].label.toLowerCase() + '.svg'
+                var tmp = loadImage(tmpS);
+                pausecomp(100);
+                await timer(100);
+                //            setTimeout(function () {
+                if (tmp.width > 1) {
+                    console.log("Found: ", tmp);
+                    var imgId = myBoard.buttons[i].image_id;
+                    var tmpId = imageIndexFromId(imgId);
+                    buttonsChanged = true;
+                    myBoard.images[tmpId].path = tmpS;
+                    imgs[tmpId] = loadImage(myBoard.images[tmpId].path);
+                    delete myBoard.images[tmpId].data;
+                    delete myBoard.images[tmpId].url;
+                    delete myBoard.images[tmpId].data_url;
+                    if (manifestInfo.paths.images.length > 0) {
+                        manifestInfo.paths.images[imgId] = tmpS;
+                        manifestChanged = true;
+                    }
+                    // now replace image path and delete image data
+                } else
+                    console.log("Not Found: ", tmp);
+                //            }, 50);
+            } catch (e) {}
+        }
+        var text = JSON.stringify(myBoard, null, ' ');
+        pausecomp(200);
+        zip.file(currentZipBoard, text);
+    } else {
+        for (var propt in s) {
+            Notiflix.Loading.change('Changing: ' + s[propt]);
+            setSymbolInfo(propt, s[propt]);
+            await timer(250);
+        }
+    }
+
+    var text = JSON.stringify(manifestInfo, null, ' ')
+    zip.file("manifest.json", text);
+    Notiflix.Loading.remove();
+    await timer(250);
+    currentZipBoard = "";
+    loadZipBoard(homeBoardName);
+}
+
+async function setSymbolInfo(s2, s1) {
+    console.log("Board: ", s1, " Id: ", s2);
+    zipData.file(s1).async("string").then(function (data2) {
+        //        console.log(data2);
+        tmpBoard = JSON.parse(data2);
+        for (i = 0; i < tmpBoard.images.length; i++) {
+            if (tmpBoard.images[i].hasOwnProperty('data'))
+                continue;
+            if (tmpBoard.images[i].hasOwnProperty('path')) {
+                //                newimagename = "images/" + manifestInfo.paths.images[tmpBoard.images[i].id] ;
+                //               console.log("i: ", i, tmpBoard.images[i].path, " -> ", newimagename);
+                tmpBoard.images[i].path = manifestInfo.paths.images[tmpBoard.images[i].id];
+            }
+        }
+        // now save board
+        var text = JSON.stringify(tmpBoard, null, ' ');
+        pausecomp(200);
+        zip.file(s1, text);
+        console.log("Save: ", s1);
+        pausecomp(200);
+    }).catch(function (err) {
+        console.error("Failed to open file:", err);
+        tmpS = s1;
+    })
+}
+
+var counter2;
+async function embedImagesForBoard(s) {
+    imagesLoaded = false;
+    await zipData.file(s).async("string").then(function (data2) {
+        //        //        console.log(data2);
+        tmpBoard = JSON.parse(data2);
+        getImages();
+    }).catch(function (err) {
+        console.error("Failed to open file:", err);
+        tmpS = s;
+    })
+    await timer(9000);
+    var text = JSON.stringify(tmpBoard, null, ' ');
+    zip.file(s, text);
+    console.log("Save: ", s);
+}
+
+var imagesLoaded = false;
+async function getImages() {
+    for (var i = 0; i < tmpBoard.images.length; i++) {
+        counter2 = i;
+        var im = tmpBoard.images[i];
+        if (im.hasOwnProperty('path')) {
+            if (boardDiskFormat == 1)
+                continue;
+            else if (tmpBoard.images[i].path.includes('SAHsymbols')) {
+                console.log("Skip: ", tmpBoard.images[i].path);
+                delete tmpBoard.images[i].data;
+                delete tmpBoard.images[i].url;
+                delete tmpBoard.images[i].data_url;
+            }
+        } else if (im.hasOwnProperty('data'))
+        ;
+        else if (im.hasOwnProperty('url')) {
+            if (myBoard.images[counter2].url != null) {
+                getBase64FromImageUrl(myBoard.images[counter2].url);
+                Notiflix.Loading.change('Loading: ' + myBoard.images[counter2].url.replace(/^.*[\\\/]/, ''));
+                await timer(100);
+            }
+        } else
+        ;
+        //    imgs[i] = null;
+    }
+    imagesLoaded = true;
+}
+
+function getBase64FromImageUrl(url) {
+    var img = new Image();
+
+    img.setAttribute('crossOrigin', 'anonymous');
+
+    img.onload = function () {
+        var canvas = document.createElement("canvas");
+        canvas.width = this.width;
+        canvas.height = this.height;
+
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(this, 0, 0);
+
+        var dataURL = canvas.toDataURL("image/png");
+        tmpBoard.images[counter2].data = dataURL;
+        console.log("Got data: ", counter2, url);
+        //        alert(dataURL.replace(/^data:image\/(png|jpg);base64,/, ""));
+    };
+    img.src = url;
+}
+
+async function embedImages() {
+    Notiflix.Loading.dots('Loading...');
+    var s = manifestInfo.paths.boards;
+    for (var propt in s) {
+        console.log("Name: ", s[propt])
+        embedImagesForBoard(s[propt]);
+        await timer(10000);
+    }
+    Notiflix.Loading.remove();
+}
+
+
 function boardUtils() {
     setTimeout(function () {
+        //        changeSymbols();
         //        updateBoardNames();
         //        updateImageNames();
         //        doRename();
@@ -381,15 +584,11 @@ async function setBoardInfo(s2, s1) {
     })
 }
 
-
-var oldImageValues;
 var newImageValues;
-
 
 async function updateImageNames() {
     var s = manifestInfo.paths.boards;
     var images = manifestInfo.paths.images;
-    oldImageValues = images;
     var IDs = Object.values(images);
     var keys = Object.keys(images);
     newImageValues = structuredClone(images);
@@ -500,71 +699,6 @@ async function redoImages(i) {
     }
 }
 
-
-var counter2;
-async function embedImagesForBoard(s) {
-    await zipData.file(s).async("string").then(function (data2) {
-        //        //        console.log(data2);
-        tmpBoard = JSON.parse(data2);
-        getImages();
-    }).catch(function (err) {
-        console.error("Failed to open file:", err);
-        tmpS = s;
-    })
-    await timer(5000);
-    var text = JSON.stringify(tmpBoard, null, ' ');
-    zip.file(s, text);
-    console.log("Save: ", s);
-}
-
-
-async function getImages() {
-    for (var i = 0; i < tmpBoard.images.length; i++) {
-        await timer(100);
-        counter2 = i;
-        var im = tmpBoard.images[i];
-        if (im.hasOwnProperty('data'))
-            continue;
-        else if (im.hasOwnProperty('path')) {
-            if (boardDiskFormat == 1)
-                continue;
-            else { // now read images from zip
-                var ext = re.exec(tmpBoard.images[i].path)[1];
-                if (ext == 'svg') {
-                    const fileStr2 = await zipData.file(tmpBoard.images[i].path).async('base64').then(function (data) {
-                        tmpBoard.images[counter2].data = "data:image/svg+xml;base64," + data;
-                        console.log(counter2);
-                    }).catch(function (err) {
-                        console.error("Failed to open file:", err);
-                    })
-                } else {
-
-                    const fileStr = await zipData.file(tmpBoard.images[i].path).async('base64').then(function (data) {
-                        tmpBoard.images[counter2].data = "data:image/" + ext + ";base64," + data;
-                        console.log(counter2);
-                    }).catch(function (err) {
-                        console.error("Failed to open file:", err);
-                    })
-
-                }
-            }
-        } else if (im.hasOwnProperty('url'))
-        ; //                            imgs[i] = await loadImage(myBoard.images[i].url, imageLoaded);
-        else
-        ;
-        //    imgs[i] = null;
-    }
-
-}
-
-async function embedImages() {
-    var s = manifestInfo.paths.boards;
-    for (var propt in s) {
-        embedImagesForBoard(s[propt]);
-        await timer(5000);
-        console.log("Name: ", tmpS)
-    }
-}
 
 var tmpS = "";
 async function doRename() {

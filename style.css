@@ -31,7 +31,7 @@ splash {
     background-size: 100vw 100vh;
     background-color: black;
     opacity: 1.0;
-    z-index: 10001;
+    z-index: 2001;
     -webkit-app-region: no-drag;
 }
 
@@ -49,7 +49,7 @@ settingsSplash {
     background-size: 5vw 5vw;
     background-position: left top;
     background-repeat: no-repeat;
-    z-index: 16002;
+    z-index: 2002;
     opacity: .8;
     -webkit-app-region: no-drag;
 }
@@ -155,7 +155,7 @@ guideSplash:active {
     position: absolute;
     top: 0vh;
     left: 0vw;
-    z-index: 7001;
+    z-index: 3000;
     transform: scale(1.1);
 }
 
@@ -191,7 +191,7 @@ buttonPanel {
     background: url(images/panel.png);
     background-size: 100% 100%;
     opacity: .95;
-    z-index: 7000;
+    z-index: 2000;
     -webkit-app-region: no-drag;
 }
 
@@ -214,7 +214,7 @@ closeButton {
     text-align: center;
     font-size: 3vh;
     opacity: 0.95;
-    z-index: 5000;
+    z-index: 1700;
     -webkit-app-region: no-drag;
 }
 
@@ -238,7 +238,7 @@ editButton {
     text-align: center top;
     font-size: 3vh;
     opacity: 0.95;
-    z-index: 7000;
+    z-index: 2000;
     -webkit-app-region: no-drag;
 }
 
@@ -258,7 +258,7 @@ settings {
     background-repeat: no-repeat;
     background-size: 4vh 4vh;
     opacity: 0.95;
-    z-index: 7000;
+    z-index: 2000;
     -webkit-app-region: no-drag;
 }
 
@@ -278,7 +278,7 @@ boardButton {
     background-repeat: no-repeat;
     background-size: 6vh 4.5vh;
     opacity: 0.95;
-    z-index: 7000;
+    z-index: 2000;
     -webkit-app-region: no-drag;
 }
 

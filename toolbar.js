@@ -158,9 +158,9 @@ function setUpToolbar() {
     leftButton.onmousedown = function (e) {
         e.stopPropagation();
         e.preventDefault();
+        if (!closeButton.hidden)
+            return;
         if (params.inputMethod == "Switches") {
-            e.stopPropagation();
-            e.preventDefault();
             if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     doClick(0);
@@ -182,9 +182,9 @@ function setUpToolbar() {
     leftButton.onmouseup = function (e) {
         e.stopPropagation();
         e.preventDefault();
+        if (!closeButton.hidden)
+            return;
         if (params.inputMethod == "Switches") {
-            e.stopPropagation();
-            e.preventDefault();
             if (switchInput == strRelease)
                 doClick(0);
         } else {
@@ -200,7 +200,7 @@ function setUpToolbar() {
     leftButton.onmousemove = function (e) {
         e.stopPropagation();
         e.preventDefault();
-        if (!buttonPanel.hidden)
+        if (!closeButton.hidden)
             return;
         if (params.inputMethod == "Switches") {} else {
             doingLeft = true;
@@ -215,6 +215,69 @@ function setUpToolbar() {
         mouseHeldDown = false;
         doingLeft = true;
         clearTimeout(tmrRepeat);
+    }
+
+    leftButton.ontouchstart = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!closeButton.hidden)
+            return;
+        tchX = e.x = e.touches[0].pageX;
+        tchY = e.y = e.touches[0].pageY;
+        console.log("Button Touch started");
+        if (params.inputMethod == "Switches") {
+            if (switchInput == strPress) {
+                if (params.acceptanceDelay == 0)
+                    doClick(0);
+                else
+                    tmrAccept = setTimeout(function () {
+                        doClick(0);
+                    }, params.acceptanceDelay * 1000);
+            }
+        } else { // touchpad
+            clearTimeout(tmrRepeat);
+            firstTouch = true;
+            tpdSleep = false;
+            mouseHeldDown = true;
+            doingLeft = true;
+            tpdEvent(e, 0);
+        }
+    }
+
+    leftButton.ontouchmove = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!closeButton.hidden)
+            return;
+        //    event.preventDefault();
+        tchX = e.x = event.touches[0].pageX;
+        tchY = e.y = event.touches[0].pageY;
+        if (params.inputMethod == "Switches") {} else {
+            doingLeft = true;
+            if (mouseHeldDown || params.touchpadMode == "Absolute")
+                tpdEvent(e, 2);
+        }
+    }
+
+    leftButton.ontouchend = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!closeButton.hidden)
+            return;
+        e.x = tchX;
+        e.y = tchY;
+        console.log("Button touch ended");
+        if (params.inputMethod == "Switches") {
+            if (switchInput == strRelease)
+                doClick(0);
+        } else {
+            firstTouch = false;
+            tpdSleep = false;
+            mouseHeldDown = false;
+            doingLeft = true;
+            clearTimeout(tmrRepeat);
+            tpdEvent(e, 1);
+        }
     }
 
     rightButton = document.createElement("button");
@@ -249,7 +312,7 @@ function setUpToolbar() {
                     doClick(0);
                 else
                     tmrAccept = setTimeout(function () {
-                        doClick(0);
+                        doClick(1);
                     }, params.acceptanceDelay * 1000);
             }
         } else { // touchpad
@@ -269,7 +332,7 @@ function setUpToolbar() {
             e.stopPropagation();
             e.preventDefault();
             if (switchInput == strRelease)
-                doClick(0);
+                doClick(1);
         } else {
             firstTouch = false;
             tpdSleep = false;
@@ -299,46 +362,193 @@ function setUpToolbar() {
         clearTimeout(tmrRepeat);
     }
 
+
+    rightButton.ontouchstart = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!closeButton.hidden)
+            return;
+        tchX = e.x = e.touches[0].pageX;
+        tchY = e.y = e.touches[0].pageY;
+        console.log("Button Touch started");
+        if (params.inputMethod == "Switches") {
+            if (switchInput == strPress) {
+                if (params.acceptanceDelay == 0)
+                    doClick(0);
+                else
+                    tmrAccept = setTimeout(function () {
+                        doClick(0);
+                    }, params.acceptanceDelay * 1000);
+            }
+        } else { // touchpad
+            clearTimeout(tmrRepeat);
+            firstTouch = true;
+            tpdSleep = false;
+            mouseHeldDown = true;
+            doingLeft = false;
+            tpdEvent(e, 0);
+        }
+    }
+
+    rightButton.ontouchmove = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!closeButton.hidden)
+            return;
+        //    event.preventDefault();
+        tchX = e.x = event.touches[0].pageX;
+        tchY = e.y = event.touches[0].pageY;
+        if (params.inputMethod == "Switches") {} else {
+            doingLeft = false;
+            if (mouseHeldDown || params.touchpadMode == "Absolute")
+                tpdEvent(e, 2);
+        }
+    }
+
+    rightButton.ontouchend = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!closeButton.hidden)
+            return;
+        e.x = tchX;
+        e.y = tchY;
+        console.log("Button touch ended");
+        if (params.inputMethod == "Switches") {
+            if (switchInput == strRelease)
+                doClick(0);
+        } else {
+            firstTouch = false;
+            tpdSleep = false;
+            mouseHeldDown = false;
+            doingLeft = false;
+            clearTimeout(tmrRepeat);
+            tpdEvent(e, 1);
+        }
+    }
+
+    /*
+    if (params.boardStyle == 'ToolbarTop') {
+        if (smallPortrait) {
+            xIndex = floor(map(event.pageX, 0, layoutViewport.offsetWidth, 0, rows));
+            yIndex = floor(map(event.pageY, offsetForBoard, layoutViewport.offsetHeight, 0, columns));
+        } else {
+            xIndex = floor(map(event.pageX, 0, layoutViewport.offsetWidth, 0, columns));
+            yIndex = floor(map(event.pageY, offsetForBoard, layoutViewport.offsetHeight, 0, rows));
+        }
+        console.log(floor(xIndex), floor(yIndex));
+    } else {
+        if (smallPortrait) {
+            yIndex = map(event.pageY, 0, hWindow, 0, columns);
+        } else {
+            yIndex = map(event.pageY, 0, hWindow, 0, rows);
+        }
+    }
+    */
+
     function tpdEvent(e, state) {
         if (params.inputMethod == "Touchpad") {
+            console.log("touchpad: ", e.x, e.y)
             if (params.touchpadMode == "Absolute") {
-
                 if (doingLeft) {
-                    if (params.boardStyle == 'ToolbarBottom')
-                        currentY = (rows + 1) - 1 - floor((rows + 1) * (layoutViewport.offsetHeight - e.y) / leftButton.offsetHeight);
-                    else
-                        currentY = (rows + 1) - 1 - floor((rows + 1) * (leftButton.offsetHeight - e.y) / leftButton.offsetHeight);
-                    if (currentY == rows) {
-                        currentX = floor(4 * (e.x - leftButton.offsetLeft) / leftButton.offsetWidth);
-                        toolbarHighlightItem(currentX);
+                    if (params.boardStyle == 'ToolbarBottom') {
+                        if (smallPortrait) {
+                            //                            currentY = floor(map(e.y, 0, hWindow, 0, columns));
+                            currentY = (columns + 1) - 1 - floor((columns + 1) * (layoutViewport.offsetHeight - e.y) / leftButton.offsetHeight);
+                            if (currentY == columns) {
+                                currentX = floor(4 * (e.x - leftButton.offsetLeft) / leftButton.offsetWidth);
+                                toolbarHighlightItem(currentX);
+                            } else {
+                                currentX = floor(rows * (e.x - leftButton.offsetLeft) / leftButton.offsetWidth);
+                                removeToolbarHighlight();
+                            }
+                        } else {
+                            currentY = (rows + 1) - 1 - floor((rows + 1) * (layoutViewport.offsetHeight - e.y) / leftButton.offsetHeight);
+                            if (currentY == rows) {
+                                currentX = floor(4 * (e.x - leftButton.offsetLeft) / leftButton.offsetWidth);
+                                toolbarHighlightItem(currentX);
+                            } else {
+                                currentX = floor(columns * (e.x - leftButton.offsetLeft) / leftButton.offsetWidth);
+                                removeToolbarHighlight();
+                            }
+                        }
                     } else {
-                        currentX = floor(columns * (e.x - leftButton.offsetLeft) / leftButton.offsetWidth);
-                        removeToolbarHighlight();
+                        if (smallPortrait) {
+                            //                            currentY = floor(map(e.y, 0, hWindow, 0, columns));
+                            currentY = (columns) - 1 - floor((columns + 1) * (leftButton.offsetHeight - e.y) / leftButton.offsetHeight);
+                            if (currentY == -1) {
+                                currentX = floor(4 * (e.x - leftButton.offsetLeft) / leftButton.offsetWidth);
+                                toolbarHighlightItem(currentX);
+                            } else {
+                                currentX = floor(rows * (e.x - leftButton.offsetLeft) / leftButton.offsetWidth);
+                                removeToolbarHighlight();
+                            }
+                        } else {
+                            currentY = (rows) - 1 - floor((rows + 1) * (leftButton.offsetHeight - e.y) / leftButton.offsetHeight);
+                            if (currentY == -1) {
+                                currentX = floor(4 * (e.x - leftButton.offsetLeft) / leftButton.offsetWidth);
+                                toolbarHighlightItem(currentX);
+                            } else {
+                                currentX = floor(columns * (e.x - leftButton.offsetLeft) / leftButton.offsetWidth);
+                                removeToolbarHighlight();
+                            }
+                        }
                     }
                 } else {
-                    if (params.boardStyle == 'ToolbarBottom')
-                        currentY = (rows + 1) - 1 - floor((rows + 1) * (layoutViewport.offsetHeight - e.y) / rightButton.offsetHeight);
-                    else
-                        currentY = (rows + 1) - 1 - floor((rows + 1) * (rightButton.offsetHeight - e.y) / rightButton.offsetHeight);
-
-                    if (currentY == rows) {
-                        currentX = floor(4 * (e.x - rightButton.offsetLeft) / rightButton.offsetWidth);
-                        toolbarHighlightItem(currentX);
+                    if (params.boardStyle == 'ToolbarBottom') {
+                        if (smallPortrait) {
+                            //                            currentY = floor(map(e.y, 0, hWindow, 0, columns));
+                            currentY = (columns + 1) - 1 - floor((columns + 1) * (layoutViewport.offsetHeight - e.y) / leftButton.offsetHeight);
+                            if (currentY == columns) {
+                                currentX = floor(4 * (e.x - rightButton.offsetLeft) / rightButton.offsetWidth);
+                                toolbarHighlightItem(currentX);
+                            } else {
+                                currentX = floor(rows * (e.x - rightButton.offsetLeft) / rightButton.offsetWidth);
+                                removeToolbarHighlight();
+                            }
+                        } else {
+                            currentY = (rows + 1) - 1 - floor((rows + 1) * (layoutViewport.offsetHeight - e.y) / leftButton.offsetHeight);
+                            if (currentY == rows) {
+                                currentX = floor(4 * (e.x - rightButton.offsetLeft) / rightButton.offsetWidth);
+                                toolbarHighlightItem(currentX);
+                            } else {
+                                currentX = floor(columns * (e.x - rightButton.offsetLeft) / rightButton.offsetWidth);
+                                removeToolbarHighlight();
+                            }
+                        }
                     } else {
-                        currentX = floor(columns * (e.x - rightButton.offsetLeft) / rightButton.offsetWidth);
-                        removeToolbarHighlight();
+                        if (smallPortrait) {
+                            //                            currentY = floor(map(e.y, 0, hWindow, 0, columns));
+                            currentY = (columns) - 1 - floor((columns + 1) * (leftButton.offsetHeight - e.y) / leftButton.offsetHeight);
+                            if (currentY == -1) {
+                                currentX = floor(4 * (e.x - rightButton.offsetLeft) / rightButton.offsetWidth);
+                                toolbarHighlightItem(currentX);
+                            } else {
+                                currentX = floor(rows * (e.x - rightButton.offsetLeft) / rightButton.offsetWidth);
+                                removeToolbarHighlight();
+                            }
+                        } else {
+                            currentY = (rows) - 1 - floor((rows + 1) * (rightButton.offsetHeight - e.y) / rightButton.offsetHeight);
+                            if (currentY == -1) {
+                                currentX = floor(4 * (e.x - rightButton.offsetLeft) / rightButton.offsetWidth);
+                                toolbarHighlightItem(currentX);
+                            } else {
+                                currentX = floor(columns * (e.x - rightButton.offsetLeft) / rightButton.offsetWidth);
+                                removeToolbarHighlight();
+                            }
+                        }
                     }
+
+
+                    console.log(currentX, currentY);
                 }
                 if (currentX < 0)
                     currentX = 0;
                 if (state == 0 && switchInput == strPress) //down
                     doClick(0);
-                if (state == 1 && switchInput == strRelease) //down
+                if (state == 1 && switchInput == strRelease) //up
                     doClick(0);
 
                 refreshBoard = 1;
-
-                console.log(currentX, currentY);
             } else { // joystick
                 if (params.boardStyle == 'ToolbarBottom') {
                     if (doingLeft)
@@ -703,6 +913,7 @@ function removeToolbarHighlight() {
     editArea.style.borderStyle = "inset";
     editArea.style.borderWidth = "medium";
     editArea.style.background = "white";
+    homeBtn.style.backgroundColor = params.backgroundColour;
     clearDisplay.style.backgroundColor = params.backgroundColour;
     backspace.style.backgroundColor = params.backgroundColour;
     backgroundButton.style.backgroundColor = params.backgroundColour;

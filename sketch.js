@@ -208,7 +208,7 @@ window.onload = () => {
     editButton.onclick = function (e) {
         lastTab = 2;
         showEdit();
-        settingsButton.style.zIndex = "15000";
+        settingsButton.style.zIndex = "1500";
         showTabs(2);
         e.stopPropagation();
         e.preventDefault();
@@ -299,8 +299,10 @@ function windowResized() {
             lblVocal.style.left = "3vw";
             lblLink.style.width = "31.4vw";
             lblLink.style.left = "3vw";
-            txtText.style.width = "60vw";
+            txtText.style.width = "50vw";
             txtText.style.left = "34.3vw";
+            btnSearch.style.width = "9vw";
+            btnSearch.style.left = "86.5vw";
             txtVocal.style.width = "60vw";
             txtVocal.style.left = "34.3vw";
             txtLink.style.width = "61.5vw";
@@ -325,8 +327,8 @@ function windowResized() {
             clearChk.style.left = "50vw";
             speakChk.style.width = "5.7vw";
             speakChk.style.left = "75.7vw";
-            btnLoadPic.style.width = "20vw";
-            btnLoadPic.style.left = "35vw";
+            btnLoadPic.style.width = "14.3vw";
+            btnLoadPic.style.left = "40vw";
             btnDeletePic.style.width = "14.3vw";
             btnDeletePic.style.left = "40vw";
             btnPlay.style.width = "14.3vw";
@@ -372,8 +374,10 @@ function windowResized() {
             lblVocal.style.left = "1vw";
             lblLink.style.width = "11vw";
             lblLink.style.left = "1vw";
-            txtText.style.width = "21.2vw";
+            txtText.style.width = "16.2vw";
             txtText.style.left = "12vw";
+            btnSearch.style.width = "4.5vw";
+            btnSearch.style.left = "29.3vw";
             txtVocal.style.width = "21.2vw";
             txtLink.style.width = "21.2vw";
             txtLink.style.left = "12vw";
@@ -398,8 +402,8 @@ function windowResized() {
             clearChk.style.left = "17.5vw";
             speakChk.style.width = "2vw";
             speakChk.style.left = "26.5vw";
-            btnLoadPic.style.width = "7vw";
-            btnLoadPic.style.left = "12.25vw";
+            btnLoadPic.style.width = "5vw";
+            btnLoadPic.style.left = "14vw";
             btnDeletePic.style.width = "5vw";
             btnDeletePic.style.left = "14vw";
             btnPlay.style.width = "5vw";
@@ -561,6 +565,8 @@ async function jsonLoaded() {
     setFaceSpeed(1000);
     loadingBoard = true;
     imgs.length = 0;
+    rows = myBoard.grid.rows;
+    columns = myBoard.grid.columns;
     //    toConvert = [];
     try {
         for (var i = 0; i < myBoard.images.length; i++) {
@@ -570,37 +576,41 @@ async function jsonLoaded() {
             if (im.hasOwnProperty('data'))
                 imgs[i] = await loadImage(myBoard.images[i].data, imageLoaded);
             else if (im.hasOwnProperty('path')) {
-                if (boardDiskFormat == 1)
-                    imgs[i] = await loadImage(boardsFolderName + myBoard.images[i].path, imageLoaded);
-                else { // now read images from zip
-                    var ext = re.exec(myBoard.images[i].path)[1];
-                    if (ext == 'svg') {
-                        //                        console.log(counter + " " + myBoard.images[i].path)
-                        const fileStr2 = await zipData.file(myBoard.images[i].path).async('base64').then(function (data) {
-                            imgs[counter] = loadImage("data:image/svg+xml;base64," + data, imageLoaded);
-                            //                            imgs[counter].width = 250;
-                            //                            imgs[counter].height = 250;
-                        }).catch(function (err) {
-                            console.error("Failed to open file:", err);
-                        })
-                    } else {
-                        const fileStr = await zipData.file(myBoard.images[i].path).async('base64').then(function (data) {
-                            imgs[counter] = loadImage("data:image/" + ext + ";base64," + data, imageLoaded);
-                        }).catch(function (err) {
-                            console.error("Failed to open file:", err);
-                        })
+                if (myBoard.images[i].path.includes('SAHsymbols')) {
+                    imgs[i] = await loadImage(myBoard.images[i].path, imageLoaded);
+                } else {
+                    if (boardDiskFormat == 1)
+                        imgs[i] = await loadImage(boardsFolderName + myBoard.images[i].path, imageLoaded);
+                    else { // now read images from zip
+                        var ext = re.exec(myBoard.images[i].path)[1];
+                        if (ext == 'svg') {
+                            //                        console.log(counter + " " + myBoard.images[i].path)
+                            const fileStr2 = await zipData.file(myBoard.images[i].path).async('base64').then(function (data) {
+                                imgs[counter] = loadImage("data:image/svg+xml;base64," + data, imageLoaded);
+                                //                            imgs[counter].width = 250;
+                                //                            imgs[counter].height = 250;
+                            }).catch(function (err) {
+                                console.error("Failed to open file:", err);
+                            })
+                        } else {
+                            const fileStr = await zipData.file(myBoard.images[i].path).async('base64').then(function (data) {
+                                imgs[counter] = loadImage("data:image/" + ext + ";base64," + data, imageLoaded);
+                            }).catch(function (err) {
+                                console.error("Failed to open file:", err);
+                            })
+                        }
                     }
                 }
                 if (myBoard.images[i].path.toLowerCase().includes(".gif")) {
                     gotGIF = true;
                 }
-            } else if (im.hasOwnProperty('url'))
+            } else if (im.url == null)
+                continue;
+            else if (im.hasOwnProperty('url'))
                 imgs[i] = await loadImage(myBoard.images[i].url, imageLoaded);
             else
                 imgs[i] = null;
         }
-        rows = myBoard.grid.rows;
-        columns = myBoard.grid.columns;
 
         refreshBoard++;
         //imgs[0] = null
@@ -609,7 +619,8 @@ async function jsonLoaded() {
             loadingBoard = false;
         }, 500);
 
-    } catch (error) {
+    } catch (e) {
+        console.log(e);
         for (var i = 0; i < myBoard.images.length; i++) {
             imgs[i] = null;
         }
@@ -707,7 +718,7 @@ function draw() {
         // invert highlight row
         //               var c = tinycolor(params.backgroundColour).spin(180).toRgbString();
         if (highlightRow >= 0 && highLightingRow && buttonPanel.hidden) {
-            if (highlightRow == rows) {
+            if (highlightRow == maxRow()) {
                 backgroundButton.style.backgroundColor = params.highlightColour;
             } else {
                 backgroundButton.style.backgroundColor = params.backgroundColour;
@@ -833,9 +844,14 @@ function drawButton(i, j, btnIndex) {
                 rect(stepx / 40 + j * stepx + xShrink, stepy / 40 + i * stepy + offsetForBoard + yShrink, stepx * .95 - xShrink * 2, stepy * .95 - 2 * yShrink);
             textSize(txtSize);
             var txt;
-            if (myBoard.buttons[btnIndex].hasOwnProperty('label'))
+            if (myBoard.buttons[btnIndex].hasOwnProperty('label')) {
                 txt = myBoard.buttons[btnIndex].label;
-            else
+                if (myBoard.buttons[btnIndex].label == null) {
+                    txt = "";
+                    myBoard.buttons[btnIndex].border_color = params.backgroundColour;
+                    myBoard.buttons[btnIndex].background_color = params.backgroundColour;
+                }
+            } else
                 txt = "";
             if (params.highContrast) {
                 stroke(255);

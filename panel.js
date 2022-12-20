@@ -26,10 +26,12 @@ var lblVocal;
 var lblLink;
 var lblInstant;
 var txtText;
+var btnSearch;
 var txtVocal;
 var txtLink;
 var btnIndex;
 var buttonsChanged = false;
+var manifestChanged = false;
 var communicatorChanged = false;
 var options = []; // select options
 var targetrule;
@@ -41,6 +43,10 @@ function showTabs(i) {
         closeEdit();
         communicatorChanged = true;
         buttonsChanged = false;
+    }
+    if (manifestChanged) {
+        var text = JSON.stringify(manifestInfo, null, ' ')
+        zip.file("manifest.json", text);
     }
     if (i >= 1) {
         if (startSplash.hidden)
@@ -75,11 +81,11 @@ function showTabs(i) {
             gui.show();
             gui2.hide();
             buttonPanel.hidden = true;
-            settingsButton.style.zIndex = "6002";
+            settingsButton.style.zIndex = "1802";
             settingsButton.style.backgroundColor = "rgb(240, 240, 240)";
-            editButton.style.zIndex = "6001";
+            editButton.style.zIndex = "1801";
             editButton.style.backgroundColor = "rgb(200, 200, 200)";
-            boardButton.style.zIndex = "6000";
+            boardButton.style.zIndex = "1800";
             boardButton.style.backgroundColor = "rgb(200, 200, 200)";
             break;
         case 2: // button
@@ -94,11 +100,11 @@ function showTabs(i) {
             gui.hide();
             gui2.hide();
             buttonPanel.hidden = false;
-            settingsButton.style.zIndex = "6000";
+            settingsButton.style.zIndex = "1800";
             settingsButton.style.backgroundColor = "rgb(200, 200, 200)";
-            editButton.style.zIndex = "6001";
+            editButton.style.zIndex = "1801";
             editButton.style.backgroundColor = "rgb(240, 240, 240)";
-            boardButton.style.zIndex = "6000";
+            boardButton.style.zIndex = "1800";
             boardButton.style.backgroundColor = "rgb(200, 200, 200)";
             break;
         case 3: //board
@@ -115,20 +121,22 @@ function showTabs(i) {
             buttonPanel.hidden = true;
             gui.hide();
             gui2.show();
-            settingsButton.style.zIndex = "6000";
+            settingsButton.style.zIndex = "1800";
             settingsButton.style.backgroundColor = "rgb(200, 200, 200)";
-            editButton.style.zIndex = "6001";
+            editButton.style.zIndex = "1801";
             editButton.style.backgroundColor = "rgb(200, 200, 200)";
-            boardButton.style.zIndex = "6002";
+            boardButton.style.zIndex = "1802";
             boardButton.style.backgroundColor = "rgb(240, 240, 240)";
 
             if (boardDiskFormat != 2)
                 return;
             // hack settings2 to remove and then reinsert options to update board list
-            changedBoard.__gui.__controllers[3].remove();
-            changedBoard.__gui.__controllers[2].remove();
-            changedBoard.__gui.__controllers[1].remove();
-            changedBoard.__gui.__controllers[0].remove();
+            try {
+                changedBoard.__gui.__controllers[3].remove();
+                changedBoard.__gui.__controllers[2].remove();
+                changedBoard.__gui.__controllers[1].remove();
+                changedBoard.__gui.__controllers[0].remove();
+            } catch (e) {}
             changedBoard = currentBoard.add(params2, 'theBoardName', theboards).name("Change Board").onChange(function () {
                 loadZipBoard(params2.theBoardName);
             });
@@ -144,6 +152,10 @@ function showTabs(i) {
 function closeEdit() {
     if (buttonsChanged)
         communicatorChanged = true;
+    if (manifestChanged) {
+        var text = JSON.stringify(manifestInfo, null, ' ')
+        zip.file("manifest.json", text);
+    }
     if (!communicatorChanged)
         return;
     if (boardDiskFormat == 2) {
@@ -232,8 +244,12 @@ function updateEditPanel() {
         removeOptions(txtLink)
         var imgIndex = imageIndexFromId(myBoard.buttons[btnIndex].image_id);
         if (imgIndex >= 0) {
-            var im = imgs[imgIndex].canvas.toDataURL();
-            imgCurrentImg.src = im; //'url(' + im + ')';
+            if (imgs[imgIndex] == null)
+                imgCurrentImg.src = "";
+            else {
+                var im = imgs[imgIndex].canvas.toDataURL();
+                imgCurrentImg.src = im; //'url(' + im + ')';
+            }
         } else
             imgCurrentImg.src = "";
         imgCurrentImg.style.borderColor = myBoard.buttons[btnIndex].border_color;
@@ -424,7 +440,71 @@ function setUpPanel() {
     txtText.oninput = function (e) {
         myBoard.buttons[btnIndex].label = txtText.value;
         buttonsChanged = true;
-        refreshBoard++;
+    }
+
+    btnSearch = document.createElement("INPUT");
+    btnSearch.style.position = "absolute";
+    btnSearch.style.height = "5vh";
+    btnSearch.style.width = "5vw";
+    btnSearch.style.left = "29vw";
+    if (smallPortrait) { // multiply left and width by 2.857
+        btnSearch.style.width = "9vw";
+        btnSearch.style.left = "86.5vw";
+    }
+    btnSearch.style.top = "50.5vh";
+    btnSearch.style.border = "none";
+    btnSearch.style.backgroundColor = "transparent";
+    btnSearch.style.backgroundSize = "100% 100%";
+    btnSearch.style.backgroundImage = "url('images/LoadPic.png')";
+    btnSearch.setAttribute("type", "button");
+    btnSearch.onclick = function (e) {
+        var tmpS = 'SAHsymbols/' + txtText.value.toLowerCase() + '.svg'
+        var tmp = loadImage(tmpS);
+        setTimeout(function () {
+            if (tmp.width > 1) {
+                console.log("Found: ", tmpS);
+                var imgId = myBoard.buttons[btnIndex].image_id;
+                var tmpId = imageIndexFromId(imgId);
+                if (imgId == null || tmpId < 0) {
+                    // create image reference
+                    var s = "";
+                    try {
+                        s = myBoard.images[myBoard.images.length - 1].id;
+                    } catch (e) {}
+                    if (s.includes("Picom")) {
+                        s = s.substr(5);
+                        s = "Picom" + (parseInt(s) + 1);
+                    } else
+                        s = "Picom1";
+
+                    imgId = s;
+                    myBoard.buttons[btnIndex].image_id = imgId;
+                    tmpPicture = {
+                        "id": imgId,
+                        "width": 250,
+                        "height": 250,
+                        "path": tmpS
+                    }
+                    myBoard.images[myBoard.images.length] = tmpPicture;
+                }
+                tmpId = imageIndexFromId(imgId);
+                buttonsChanged = true;
+                myBoard.images[tmpId].path = tmpS;
+                imgs[tmpId] = loadImage(myBoard.images[tmpId].path);
+                setTimeout(function () {
+                    var im = imgs[tmpId].canvas.toDataURL();
+                    imgCurrentImg.src = im; //'url(' + im + ')';
+                }, 50);
+
+                delete myBoard.images[tmpId].data;
+                imgs[tmpId] = loadImage(myBoard.images[tmpId].path);
+                if (manifestInfo.paths.images.length > 0)
+                    manifestInfo.paths.images[imgId] = tmpS;
+                manifestChanged = true;
+                // now replace image path and delete image data
+            } else
+                console.log("Not Found: ", tmp);
+        }, 100);
     }
 
     txtVocal = document.createElement("INPUT");
@@ -685,14 +765,14 @@ function setUpPanel() {
 
     btnLoadPic = document.createElement('INPUT');
     btnLoadPic.style.position = "absolute";
-    btnLoadPic.style.height = "9vh";
-    btnLoadPic.style.width = "7vw";
-    btnLoadPic.style.left = "12.25vw";
+    btnLoadPic.style.height = "7.5vh";
+    btnLoadPic.style.width = "5vw";
+    btnLoadPic.style.left = "14vw";
     if (smallPortrait) { // multiply left and width by 2.857
-        btnLoadPic.style.width = "20vw";
-        btnLoadPic.style.left = "35vw";
+        btnLoadPic.style.width = "14.3vw";
+        btnLoadPic.style.left = "40vw";
     }
-    btnLoadPic.style.top = "15.5vh";
+    btnLoadPic.style.top = "17.3vh";
     btnLoadPic.style.border = "none";
     btnLoadPic.style.borderColor = "transparent";
     btnLoadPic.style.backgroundColor = "transparent";
@@ -870,7 +950,7 @@ function setUpPanel() {
     btnLoadSnd.style.border = "none";
     btnLoadSnd.style.borderColor = "transparent";
     btnLoadSnd.style.backgroundSize = "100% 100%";
-    btnLoadSnd.style.backgroundImage = "url('images/LoadSnd.png')";
+    btnLoadSnd.style.backgroundImage = "url('images/LoadPic.png')";
     btnLoadSnd.style.backgroundColor = "transparent";
     btnLoadSnd.setAttribute("type", "button");
     btnLoadSnd.onclick = function (e) {
@@ -1018,6 +1098,7 @@ function setUpPanel() {
     buttonPanel.appendChild(btnEdgeCol);
     buttonPanel.appendChild(btnFillCol);
     buttonPanel.appendChild(txtText);
+    buttonPanel.appendChild(btnSearch);
     buttonPanel.appendChild(txtVocal);
     buttonPanel.appendChild(txtLink);
     buttonPanel.appendChild(instantMsg);
@@ -1054,7 +1135,10 @@ function setUpPanel() {
         if (buttonPanel.hidden)
             return;
         buttonsChanged = true;
-        btnIndex = buttonIndexFromId(myBoard.grid.order[currentY][currentX]);
+        if (smallPortrait)
+            btnIndex = buttonIndexFromId(myBoard.grid.order[currentX][currentY]);
+        else
+            btnIndex = buttonIndexFromId(myBoard.grid.order[currentY][currentX]);
         if (btnIndex < 0)
             return;
         //        setFiles(e.dataTransfer.files);

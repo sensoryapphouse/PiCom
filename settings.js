@@ -228,6 +228,11 @@ async function doSaveFile() {
         }
     }
     //    }
+    if (nowLoadFile) {
+        alert("Now choose file to import");
+        nowLoadFile = false;
+        var fileLoad1 = document.getElementById('file-input').click();
+    }
 }
 
 function showSplashButtons() {
@@ -361,7 +366,7 @@ function showEdit() {
     }
     saveParams();
     clearTimeout(tmrRepeat);
-    if (currentY == rows) {
+    if (currentY == maxRow()) {
         currentY = 0;
         removeToolbarHighlight();
         refreshBoard++;
@@ -383,16 +388,23 @@ function showSettings() {
     guiVisible = true;
 }
 
-function askToSave2() {
+var nowLoadFile = false;
+
+function askToSave2(s) {
     if (communicatorChanged) {
-        Notiflix.Confirm.show('Picom', 'Current communicator has been changed. Do you want to save those changes? (2)', 'yes', 'no', function () {
+        Notiflix.Confirm.show('Picom', 'Save changed communicator?', 'yes', 'no', function () {
             needToSave();
-            loadBoard(s);
             saveFileObj(null);
+            nowLoadFile = true;
         }, function () {
-            loadBoard(s);
             saveFileObj(null);
+            var fileLoad1 = document.getElementById('file-input').click();
+            nowLoadFile = false;
         });
+    } else {
+        loadBoard(s);
+        saveFileObj(-1);
+        nowLoadFile = false;
     }
     communicatorChanged = false;
 }

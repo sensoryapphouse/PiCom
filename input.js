@@ -158,6 +158,13 @@ function mouseReleased(event) {
     }
 }
 
+function maxRow() {
+    if (smallPortrait)
+        return columns;
+    else
+        return rows;
+}
+
 function mseEvent(event) {
     if (guiVisible)
         return;
@@ -172,7 +179,7 @@ function mseEvent(event) {
                 currentX = 0;
                 highlightRow = -1;
                 removeToolbarHighlight();
-                if (currentY == rows) {
+                if (currentY == maxRow()) {
                     toolbarHighlightItem(0);
                 }
             } else {
@@ -468,20 +475,21 @@ function doClick(button) {
                 if (button == 0) {
                     if (highLightingRow) {
                         highlightRow++;
-                        if (highlightRow > rows)
+                        if (highlightRow > maxRow())
                             highlightRow = 0;
                         if (highlightRow < 0)
-                            highlightRow = rows;
+                            highlightRow = maxRow();
                     } else {
                         moveRight();
                     }
                 } else {
                     if (highLightingRow) {
                         highLightingRow = false;
-                        currentX = 0;
+                        currentX = -1;
                         currentY = highlightRow;
                         highlightRow = -1;
                         removeToolbarHighlight();
+                        moveRight();
                     } else {
                         justSelected(currentX, currentY);
                         highLightingRow = true;
@@ -576,10 +584,10 @@ function startGoingDown() {
     tmrRepeat = setTimeout(function () {
         startGoingDown();
         highlightRow++;
-        if (highlightRow > rows)
+        if (highlightRow > maxRow())
             highlightRow = 0;
         if (highlightRow < 0)
-            highlightRow = rows;
+            highlightRow = maxRow();
         refreshBoard++;
     }, params.speed * 1000);
 }
@@ -621,10 +629,17 @@ window.addEventListener('wheel', (e) => {
                     } else if (movement < -4) {
                         highlightRow--;
                     }
-                    if (highlightRow > rows)
-                        highlightRow = 0;
-                    if (highlightRow < 0)
-                        highlightRow = rows;
+                    if (smallPortrait) {
+                        if (highlightRow > columns)
+                            highlightRow = 0;
+                        if (highlightRow < 0)
+                            highlightRow = columns;
+                    } else {
+                        if (highlightRow > rows)
+                            highlightRow = 0;
+                        if (highlightRow < 0)
+                            highlightRow = rows;
+                    }
                 } else {
                     if (movement > 4)
                         moveRight();
@@ -662,10 +677,14 @@ window.addEventListener('touchmove', e => {
 })
 
 function getButtonIndex() {
-    if (smallPortrait)
-        btnIndex = buttonIndexFromId(myBoard.grid.order[currentX][currentY]);
-    else
-        btnIndex = buttonIndexFromId(myBoard.grid.order[currentY][currentX]);
+    try {
+        if (smallPortrait)
+            btnIndex = buttonIndexFromId(myBoard.grid.order[currentX][currentY]);
+        else
+            btnIndex = buttonIndexFromId(myBoard.grid.order[currentY][currentX]);
+    } catch (e) {
+        btnIndex = -1;
+    }
 }
 
 function moveDown() {

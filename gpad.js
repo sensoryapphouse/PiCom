@@ -75,6 +75,9 @@ function showPressedButton(index) {
                             doClick(1);
                         }, params.acceptanceDelay * 1000);
                     break;
+                case 9: // three lines 
+                    goHome();
+                    break;
                 case 10: // XBox or Joystick press
                     if (params.acceptanceDelay == 0)
                         doClick(0);
