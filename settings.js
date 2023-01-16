@@ -124,6 +124,7 @@ var saveFile;
 
 async function doSaveFile() {
     //    const fileHandleOrUndefined = await get("file");
+    console.log("Do save file");
     communicatorChanged = false;
     var name = currentCommunicatorName;
     if (boardDiskFormat == 2) {
@@ -208,6 +209,7 @@ async function doSaveFile() {
                 put.onerror = function (event) {
                     console.log("Error saving obf in IndexedDB database");
                 };
+                nowLoad();
             } else { // obz
                 zip.generateAsync({
                         type: "blob"
@@ -223,16 +225,25 @@ async function doSaveFile() {
                             console.log("Error csaving obz in IndexedDB database");
                         };
                         await idbKeyval.set("type", 'obz');
+                        nowLoad();
                     });
             }
         }
     }
     //    }
+}
+
+function nowLoad() {
+    console.log("Now load", nowLoadFile);
     if (nowLoadFile) {
-        alert("Now choose file to import");
-        nowLoadFile = false;
-        var fileLoad1 = document.getElementById('file-input').click();
-    }
+        Notiflix.Confirm.show('Picom', 'Now choose file to import?', 'yes', 'no', function () {
+            nowLoadFile = false;
+            var fileLoad1 = document.getElementById('file-input').click();
+        }, function () {});
+        //        alert("Now choose file to import");
+    } else
+        loadBoard(saveName);
+    saveName = "";
 }
 
 function showSplashButtons() {
@@ -391,15 +402,16 @@ function showSettings() {
 var nowLoadFile = false;
 
 function askToSave2(s) {
+    saveName = "";
     if (communicatorChanged) {
         Notiflix.Confirm.show('Picom', 'Save changed communicator?', 'yes', 'no', function () {
+            nowLoadFile = true;
             needToSave();
             saveFileObj(null);
-            nowLoadFile = true;
         }, function () {
+            nowLoadFile = false;
             saveFileObj(null);
             var fileLoad1 = document.getElementById('file-input').click();
-            nowLoadFile = false;
         });
     } else {
         loadBoard(s);
@@ -411,6 +423,7 @@ function askToSave2(s) {
 
 var share = {
     Share_Board: async function () {
+        console.log("Share now")
         gui.hide();
         setTimeout(hideSettings, 500);
 
@@ -438,7 +451,8 @@ var share = {
                 type: "text/plain",
                 name: name
             });
-            shareFile(file2);
+            await shareFile(file2);
+            nowLoad();
         } else { // obz
             zip.generateAsync({
                     type: "blob"
@@ -457,6 +471,7 @@ var share = {
                     put.onerror = function (event) {
                         console.log("Error csaving object in IndexedDB database");
                     };
+                    nowLoad();
                 });
         }
 
@@ -657,7 +672,7 @@ function setUpGUI() {
 
     var inputOptions = gui.addFolder(strInputOptions);
     var inputMethod;
-    if (deviceOptions == 'small')
+    if (webViewIOS) //webViewIOS
         inputMethod = inputOptions.add(params, 'inputMethod', ['Touch/Mouse', 'Touchpad', 'Analog Joystick', 'Cursor Keys/Dpad', 'MouseWheel', 'Switches'
                                    // , 'Face', 'Eyes'
                                    ]).name(strInputMethod).onChange(setOptions);
@@ -871,9 +886,9 @@ function setUpGUI() {
                 break;
         }
         if (params.boardStyle == 'Fullscreen') // full screen
-            hWindow = windowHeight;
+            hWindow = viewport.height;
         else // toolbar
-            hWindow = windowHeight * .9;
+            hWindow = viewport.height * .9;
         windowResized();
         refreshBoard = 1;
     }
@@ -968,10 +983,10 @@ function setUpGUI() {
     document.oncontextmenu = function (e) { // three right clicks to show menu
         e.preventDefault();
         e.stopPropagation();
-        currentX = floor(map(event.x, 0, windowWidth, 0, columns));
-        currentY = floor(map(event.y, offsetForBoard, windowHeight, 0, rows));
+        currentX = floor(map(event.x, 0, viewport.width, 0, columns));
+        currentY = floor(map(event.y, offsetForBoard, viewport.height, 0, rows));
 
-        if (event.x < windowWidth / 4 && event.y < windowHeight / 4) {
+        if (event.x < viewport.width / 4 && event.y < viewport.height / 4) {
             showGUI++;
             console.log("Right clicks: ", showGUI)
             if (showGUI > 2) {

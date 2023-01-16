@@ -14,14 +14,14 @@ function touchStarted(event) {
     console.log("Touch started");
     if (smallPortrait) {
         currentX = floor(map(event.touches[0].pageX, 0, layoutViewport.offsetWidth, 0, rows));
-        currentY = floor(map(event.touches[0].pageY, offsetForBoard, windowHeight, 0, columns));
+        currentY = floor(map(event.touches[0].pageY, offsetForBoard, viewport.height, 0, columns));
     } else {
         currentX = floor(map(event.touches[0].pageX, 0, layoutViewport.offsetWidth, 0, columns));
-        currentY = floor(map(event.touches[0].pageY, offsetForBoard, windowHeight, 0, rows));
+        currentY = floor(map(event.touches[0].pageY, offsetForBoard, viewport.height, 0, rows));
     }
     if (event.touches.length > 1) {
         multiTouch = true;
-        if (event.touches[0].pageX < layoutViewport.offsetWidth * .25 && event.touches[0].pageY < windowHeight * .25) {
+        if (event.touches[0].pageX < layoutViewport.offsetWidth * .25 && event.touches[0].pageY < viewport.height * .25) {
             showGUI++;
             console.log("Two fingers: ", showGUI)
             if (showGUI > 2) {
@@ -256,10 +256,10 @@ function mouseMoved(event) {
     if (params.boardStyle == 'ToolbarTop') {
         if (smallPortrait) {
             currentX = floor(map(event.pageX, 0, layoutViewport.offsetWidth, 0, rows));
-            currentY = floor(map(event.pageY, offsetForBoard, windowHeight, 0, columns));
+            currentY = floor(map(event.pageY, offsetForBoard, viewport.height, 0, columns));
         } else {
             currentX = floor(map(event.pageX, 0, layoutViewport.offsetWidth, 0, columns));
-            currentY = floor(map(event.pageY, offsetForBoard, windowHeight, 0, rows));
+            currentY = floor(map(event.pageY, offsetForBoard, viewport.height, 0, rows));
         }
         if (currentX != lastX || currentY != lastY) {
             if (tmrAccept != null) {

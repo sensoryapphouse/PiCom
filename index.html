@@ -24,8 +24,6 @@
     <!--    <link rel="stylesheet" type="text/css" href="dat-gui-picom-theme.css">-->
     <link rel=" stylesheet" type="text/css" href="style.css">
     <!--    <link rel="stylesheet" type="text/css" href="dat-gui-font.css">-->
-
-
     <meta charset="utf-8">
 </head>
 <div id="layoutViewport"></div>
@@ -94,13 +92,24 @@
         border-left: 3px solid #fafafa
     }
 
+    /*
     .dg .cr.function {
-        border-left: 3px solid #C8C8E8;
-        background: #C8C8E8;
+    border-left: 3px solid #C8C8E8;
+    background: #C8C8E8;
     }
 
     .dg .cr.function:hover {
-        background: #B8B8D8
+    background: #B8B8D8
+    }
+*/
+
+    .dg .cr.function {
+        border-left: 3px solid #fafafa;
+        background: #fafafa;
+    }
+
+    .dg .cr.function:hover {
+        background: white
     }
 
     .dg .cr.number {
@@ -157,9 +166,9 @@
     <settings class=" btn" hidden enabled></settings>
     <closeButton class=" btn" hidden enabled></closeButton>
     <boardButton class=" btn" hidden enabled></boardButton>
-    <toolbar id="picomBar"></toolbar>
+    <toolbar class="no-print" id="picomBar"></toolbar><!-- added by DMS for no print-->
     <canvas hidden=true id='jeelizFaceExpressionsCanvas'></canvas>
-
+    <toggleSwitch class="btn" hidden></toggleSwitch>
     <script src="versions.js"></script>
     <script src="settings.js"> </script>
     <script src="settings2.js"> </script>

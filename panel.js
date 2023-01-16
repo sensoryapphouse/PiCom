@@ -202,7 +202,8 @@ function updateEditPanel() {
     if (buttonPanel.hidden)
         return;
     //    removeOptions(txtLink);
-    titleLbl.innerHTML = currentBoardName.substring(currentBoardName.indexOf('/') + 1);; // myBoard.name
+
+    titleLbl.innerHTML = currentBoardName; //.substring(currentBoardName.indexOf('/') + 1);; // myBoard.name
     buttonNoLbl.innerHTML = "(" + (currentX + 1) + ", " + (currentY + 1) + ")";
     if (currentY < 0) {
         currentX = currentY = 0;
@@ -231,7 +232,10 @@ function updateEditPanel() {
         imgCurrentImg.style.backgroundImage = null;
         //        imgCurrentImg.style.backgroundColor = 'grey';
         var tmp = "PiCom" + currentX.toString() + currentY.toString();
-        myBoard.grid.order[currentY][currentX] = tmp;
+        if (smallPortrait) {
+            myBoard.grid.order[currentX][currentY] = tmp;
+        } else
+            myBoard.grid.order[currentY][currentX] = tmp;
         myBoard.buttons[myBoard.buttons.length] = { // initialise new button
             "id": tmp,
             "label": "",
@@ -239,6 +243,11 @@ function updateEditPanel() {
             "background_color": params.backgroundColour,
             "border_color": params.backgroundColour
         };
+        if (smallPortrait) {
+            btnIndex = buttonIndexFromId(myBoard.grid.order[currentX][currentY]);
+        } else {
+            btnIndex = buttonIndexFromId(myBoard.grid.order[currentY][currentX]);
+        }
         setOptions(txtLink);
     } else {
         removeOptions(txtLink)
@@ -341,7 +350,7 @@ function setUpPanel() {
     //        titleLbl.style.font = "ariel, bold, sans-serif";
     titleLbl.style.fontSize = "2.5vh";
     titleLbl.style.color = 'white';
-    titleLbl.style.background = 'transparent';
+    titleLbl.style.background = '#686894';
     titleLbl.style.border = "none";
     titleLbl.style.textAlign = "left";
     titleLbl.innerHTML = "Board name";
@@ -358,7 +367,7 @@ function setUpPanel() {
     buttonNoLbl.style.top = "8vh";
     buttonNoLbl.style.fontSize = "2.5vh";
     buttonNoLbl.style.color = 'black';
-    buttonNoLbl.style.background = 'transparent';
+    buttonNoLbl.style.background = '#F0F0F0';
     buttonNoLbl.style.border = "none";
     buttonNoLbl.style.textAlign = "center";
     buttonNoLbl.style.verticalAlign = "center";
@@ -438,6 +447,9 @@ function setUpPanel() {
     txtText.style.border = "inset";
     txtText.value = "";
     txtText.oninput = function (e) {
+        if (btnIndex == -1) {
+
+        }
         myBoard.buttons[btnIndex].label = txtText.value;
         buttonsChanged = true;
     }
@@ -458,53 +470,62 @@ function setUpPanel() {
     btnSearch.style.backgroundImage = "url('images/LoadPic.png')";
     btnSearch.setAttribute("type", "button");
     btnSearch.onclick = function (e) {
-        var tmpS = 'SAHsymbols/' + txtText.value.toLowerCase() + '.svg'
-        var tmp = loadImage(tmpS);
-        setTimeout(function () {
-            if (tmp.width > 1) {
-                console.log("Found: ", tmpS);
-                var imgId = myBoard.buttons[btnIndex].image_id;
-                var tmpId = imageIndexFromId(imgId);
-                if (imgId == null || tmpId < 0) {
-                    // create image reference
-                    var s = "";
-                    try {
-                        s = myBoard.images[myBoard.images.length - 1].id;
-                    } catch (e) {}
-                    if (s.includes("Picom")) {
-                        s = s.substr(5);
-                        s = "Picom" + (parseInt(s) + 1);
-                    } else
-                        s = "Picom1";
+        let tmpS = 'SAHsymbols/' + txtText.value.toLowerCase() + '.svg';
+        let s1 = txtText.value.toLowerCase() + '.svg';
+        let tf = symbolZip.file(s1);
+        if (tf != null) {
+            console.log("Found: ", tmpS);
+            var imgId = myBoard.buttons[btnIndex].image_id;
+            var tmpId = imageIndexFromId(imgId);
+            if (imgId == null || tmpId < 0) {
+                // create image reference
+                var s = "";
+                try {
+                    s = myBoard.images[myBoard.images.length - 1].id;
+                } catch (e) {}
+                if (s.includes("Picom")) {
+                    s = s.substr(5);
+                    s = "Picom" + (parseInt(s) + 1);
+                } else
+                    s = "Picom1";
 
-                    imgId = s;
-                    myBoard.buttons[btnIndex].image_id = imgId;
-                    tmpPicture = {
-                        "id": imgId,
-                        "width": 250,
-                        "height": 250,
-                        "path": tmpS
-                    }
-                    myBoard.images[myBoard.images.length] = tmpPicture;
+                imgId = s;
+                myBoard.buttons[btnIndex].image_id = imgId;
+                tmpPicture = {
+                    "id": imgId,
+                    "width": 250,
+                    "height": 250,
+                    "path": tmpS
                 }
-                tmpId = imageIndexFromId(imgId);
-                buttonsChanged = true;
-                myBoard.images[tmpId].path = tmpS;
-                imgs[tmpId] = loadImage(myBoard.images[tmpId].path);
-                setTimeout(function () {
-                    var im = imgs[tmpId].canvas.toDataURL();
-                    imgCurrentImg.src = im; //'url(' + im + ')';
-                }, 50);
+                myBoard.images[myBoard.images.length] = tmpPicture;
+            }
+            tmpId = imageIndexFromId(imgId);
+            buttonsChanged = true;
+            myBoard.images[tmpId].path = tmpS;
+            //                imgs[tmpId] = loadImage(myBoard.images[tmpId].path);
 
-                delete myBoard.images[tmpId].data;
-                imgs[tmpId] = loadImage(myBoard.images[tmpId].path);
-                if (manifestInfo.paths.images.length > 0)
-                    manifestInfo.paths.images[imgId] = tmpS;
-                manifestChanged = true;
-                // now replace image path and delete image data
-            } else
-                console.log("Not Found: ", tmp);
-        }, 100);
+            symbolZip.file(s1).async('base64').then(function (data) {
+                imgs[tmpId] = loadImage("data:image/svg+xml;base64," + data);
+                //                            imgs[counter].width = 250;
+                //                            imgs[counter].height = 250;
+            }).catch(function (err) {
+                console.error("Failed to open file:", err);
+            })
+
+            setTimeout(function () {
+                var im = imgs[tmpId].canvas.toDataURL();
+                imgCurrentImg.src = im; //'url(' + im + ')';
+            }, 50);
+
+            delete myBoard.images[tmpId].data;
+            //                imgs[tmpId] = loadImage(myBoard.images[tmpId].path);
+            if (manifestInfo.paths.images.length > 0)
+                manifestInfo.paths.images[imgId] = tmpS;
+            manifestChanged = true;
+            // now replace image path and delete image data
+        } else
+            console.log("Not Found: ", s1);
+        //        }, 100);
     }
 
     txtVocal = document.createElement("INPUT");
@@ -1116,8 +1137,8 @@ function setUpPanel() {
 
     function onDragOver(e) {
 
-        //        currentX = floor(map(e.x, 0, windowWidth, 0, columns));
-        //        currentY = floor(map(e.y, offsetForBoard, windowHeight, 0, rows));
+        //        currentX = floor(map(e.x, 0, viewport.width, 0, columns));
+        //        currentY = floor(map(e.y, offsetForBoard, viewport.height, 0, rows));
         e.stopPropagation();
         e.preventDefault();
     }
@@ -1361,6 +1382,13 @@ function setUpPanel() {
         align: 'left',
         className: 'green'
     });
+
+    MarcTooltips.add(btnSearch, "Search for image", {
+        position: 'bottom',
+        align: 'right',
+        className: 'green'
+    });
+
 
     if (params.tooltips)
         root.style.setProperty('--change', 70);

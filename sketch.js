@@ -21,6 +21,8 @@ var guiVisible = false;
 var blob; // for loading obz files
 var zip;
 var zipData;
+var symbolZip;
+var symbolZipData;
 
 var showGUI = 0; // count right clicks for showing gui
 
@@ -56,6 +58,7 @@ var highlightRow = -1;
 var scanningSpeed = .5;
 var splash;
 var settingsSplash;
+var toggleSwitch;
 var startSplash;
 var guideSplash;
 var helpSplash;
@@ -76,6 +79,7 @@ function doSettingsSplash() {
 
 window.onload = () => {
     'use strict';
+
     if ('serviceWorker' in navigator && !testing) {
         navigator.serviceWorker
             .register('./sw.js');
@@ -103,12 +107,22 @@ window.onload = () => {
     }
     window.visualViewport.addEventListener('scroll', viewportHandler);
     window.visualViewport.addEventListener('resize', viewportHandler);
-
+    initSymbolsZip();
     splash = document.querySelector('splash');
     startSplash = document.querySelector('startSplash');
     settingsSplash = document.querySelector('settingsSplash');
+    toggleSwitch = document.querySelector('toggleSwitch');
     guideSplash = document.querySelector('guideSplash');
 
+    toggleSwitch.onclick = function (e) {
+        params.chkHideSettings = !params.chkHideSettings;
+        if (params.chkHideSettings)
+            toggleSwitch.style.backgroundImage = "url('images/off.svg')";
+        else
+            toggleSwitch.style.backgroundImage = "url('images/on.svg')";
+        e.stopPropagation();
+        e.preventDefault();
+    }
     guideSplash.onclick = function (e) {
         window.open("https://www.sensoryapphouse.com//picomhelp", "Sensory App House", "toolbar=yes,scrollbars=yes,resizable=yes");
         showSplashButtons();
@@ -140,11 +154,13 @@ window.onload = () => {
     //    }, 500);
 
     settingsSplash.onmousedown = function (e) {
+        setUpGUI();
         lastTab = 1;
         startSplash.hidden = true;
         splash.hidden = true;
         guideSplash.hidden = true;
         helpSplash.hidden = true;
+        toggleSwitch.hidden = true;
         showSettings();
         showTabs(1);
         e.stopPropagation();
@@ -157,11 +173,13 @@ window.onload = () => {
     }
 
     settingsSplash.ontouchstart = function (e) {
+        setUpGUI();
         lastTab = 1;
         startSplash.hidden = true;
         splash.hidden = true;
         guideSplash.hidden = true;
         helpSplash.hidden = true;
+        toggleSwitch.hidden = true;
         showSettings();
         showTabs(1);
         e.stopPropagation();
@@ -173,11 +191,13 @@ window.onload = () => {
     }
 
     startSplash.onclick = function (e) {
+        setUpGUI();
         lastTab = 1;
         startSplash.hidden = true;
         splash.hidden = true;
         guideSplash.hidden = true;
         helpSplash.hidden = true;
+        toggleSwitch.hidden = true;
         doSettingsSplash();
         e.stopPropagation();
         e.preventDefault();
@@ -246,6 +266,18 @@ window.onload = () => {
     initLanguages();
 }
 
+async function initSymbolsZip() {
+    let blob = await fetch("./SAHsymbols.zip").then(r => r.blob());
+    symbolZip = new JSZip();
+    symbolZip.loadAsync(blob).then(function (symbolzipinfo) {
+
+        console.log("SAH symbols loaded");
+        symbolZipData = symbolzipinfo;
+    }).catch(function (err) {
+        console.error("Failed to open");
+    })
+}
+
 window.addEventListener("orientationchange", function () {
     windowResized();
 }, false);
@@ -263,7 +295,7 @@ function windowResized() {
     if (smallPortrait) {
         stepx = layoutViewport.offsetWidth / rows;
         stepy = hWindow / columns;
-        splash.style.backgroundImage = "url('images/PiCom Portrait.jpg')";
+        splash.style.backgroundImage = "url('images/PiComPortrait.jpg')";
     } else {
         stepx = layoutViewport.offsetWidth / columns;
         stepy = hWindow / rows;
@@ -272,12 +304,19 @@ function windowResized() {
     refreshBoard++;
 
     if (params.boardStyle == 'ToolbarTop')
-        offsetForBoard = windowHeight * .1;
+        offsetForBoard = viewport.height * .1;
     else
         offsetForBoard = 0;
 
     try {
         if (smallPortrait) {
+            settingsSplash.style.width = "10vw";
+            settingsSplash.style.height = "10vw";
+            settingsSplash.style.backgroundSize = "10vw 10vw";
+            toggleSwitch.style.width = "10vw";
+            toggleSwitch.style.height = "5vw";
+            toggleSwitch.style.top = "12vw";
+            toggleSwitch.style.backgroundSize = "10vw 5vw";
             gui.width = window.innerWidth * .9;
             gui2.width = window.innerWidth * .9;
             closeButton.style.left = "1vw";
@@ -349,10 +388,14 @@ function windowResized() {
             imgCurrentImg.style.left = "4.3vw";
             imgUparrow.style.width = "4vw";
             imgUparrow.style.left = "14vw";
-            settingsSplash.style.width = "10vw";
-            settingsSplash.style.height = "10vw";
-            settingsSplash.style.backgroundSize = "10vw 10vw";
         } else {
+            settingsSplash.style.width = "5vw";
+            settingsSplash.style.height = "5vw";
+            settingsSplash.style.backgroundSize = "5vw 5vw";
+            toggleSwitch.style.width = "5vw";
+            toggleSwitch.style.height = "4vw";
+            toggleSwitch.style.top = "6vw";
+            toggleSwitch.style.backgroundSize = "5vw 5vw";
             gui.width = window.innerWidth * .319;
             gui2.width = window.innerWidth * .319;
             closeButton.style.left = "1vw";
@@ -424,12 +467,9 @@ function windowResized() {
             imgCurrentImg.style.left = "1.5vw";
             imgUparrow.style.width = "1.4vw";
             imgUparrow.style.left = "4.9vw";
-            settingsSplash.style.width = "5vw";
-            settingsSplash.style.height = "5vw";
-            settingsSplash.style.backgroundSize = "5vw 5vw";
         }
     } catch (e) {}
-    //    cvs.canvas.clientTop = windowHeight * .1;
+    //    cvs.canvas.clientTop = viewport.height * .1;
 }
 
 
@@ -457,6 +497,8 @@ function brdLoaded(s) {
     jsonLoaded();
 }
 
+var tmrNotiflix;
+
 function loadBoard(s) {
     console.log("Load board: ", s);
     currentCommunicatorName = s.substring(s.indexOf('/') + 1);
@@ -479,6 +521,11 @@ function loadBoard(s) {
     else { // obz 
         NotiflixLoadingTmr = setTimeout(function () {
             Notiflix.Loading.arrows();
+            tmrNotiflix = setTimeout(function () {
+                clearTimeout(NotiflixLoadingTmr);
+                NotiflixLoadingTmr = null;
+                Notiflix.Loading.remove();
+            }, 30000);
         }, 200);
 
         getZip(s);
@@ -498,12 +545,24 @@ async function getZip(s) {
     //    s = "boards/zip.zip";
     console.log("Get zip: ", s);
     setFaceSpeed(2000);
-    blob = await fetch(s).then(r => r.blob());
+    blob = await fetch(s)
+        .then(r => r.blob())
+        .catch(error => {
+            clearTimeout(tmrNotiflix);
+            clearTimeout(NotiflixLoadingTmr);
+            NotiflixLoadingTmr = null;
+            Notiflix.Loading.remove();
+            alert("File did not load");
+            console.log("Load error");
+            showSplashButtons();
+            return;
+        });
     zip = null;
     currentZipBoard = "";
     zip = new JSZip();
     zip.loadAsync(blob).then(function (zipinfo) {
         showSplashButtons();
+        clearTimeout(tmrNotiflix);
         if (NotiflixLoadingTmr != null) {
             clearTimeout(NotiflixLoadingTmr);
             NotiflixLoadingTmr = null;
@@ -577,7 +636,16 @@ async function jsonLoaded() {
                 imgs[i] = await loadImage(myBoard.images[i].data, imageLoaded);
             else if (im.hasOwnProperty('path')) {
                 if (myBoard.images[i].path.includes('SAHsymbols')) {
-                    imgs[i] = await loadImage(myBoard.images[i].path, imageLoaded);
+                    //                    imgs[i] = await loadImage(myBoard.images[i].path, imageLoaded);
+                    let s1 = myBoard.images[i].path.replace(/^.*[\\\/]/, '');
+                    symbolZip.file(s1).async('base64').then(function (data) {
+                        imgs[counter] = loadImage("data:image/svg+xml;base64," + data, imageLoaded);
+                        //                            imgs[counter].width = 250;
+                        //                            imgs[counter].height = 250;
+                    }).catch(function (err) {
+                        console.error("Failed to open file:", err);
+                    })
+                    await timer(6);
                 } else {
                     if (boardDiskFormat == 1)
                         imgs[i] = await loadImage(boardsFolderName + myBoard.images[i].path, imageLoaded);
@@ -657,7 +725,6 @@ function makeTransparent() {
         }
         imgs[i].updatePixels();
     }
-
     refreshBoard++;
 }
 
@@ -666,16 +733,21 @@ var someNumber = 0;
 function setup() {
     //  gui.hide();
     //    p5.disableFriendlyErrors = true;
-    cvs = createCanvas(windowWidth, windowHeight); //hWindow);
-    stepx = windowWidth / columns;
+    cvs = createCanvas(viewport.width, viewport.height); //hWindow);
+    stepx = viewport.width / columns;
     stepy = hWindow / rows;
     setTimeout(function () {
         loadParams();
         if (params.boardStyle == 'Fullscreen')
-            hWindow = windowHeight;
+            hWindow = viewport.height;
         else
-            hWindow = windowHeight * .9;
-        setTimeout(setUpGUI, 150);
+            hWindow = viewport.height * .9;
+        toggleSwitch.hidden = false;
+        if (params.chkHideSettings)
+            toggleSwitch.style.backgroundImage = "url('images/off.svg')";
+        else
+            toggleSwitch.style.backgroundImage = "url('images/on.svg')";
+        //        setTimeout(setUpGUI, 150);
     }, 500);
     //    setTimeout(loadParams, 500);
     frameRate(10);
@@ -724,7 +796,7 @@ function draw() {
                 backgroundButton.style.backgroundColor = params.backgroundColour;
                 stroke(params.highlightColour);
                 fill(params.highlightColour);
-                rect(0, offsetForBoard + highlightRow * stepy, windowWidth, stepy);
+                rect(0, offsetForBoard + highlightRow * stepy, viewport.width, stepy);
             }
         }
         textSize(txtSize);
@@ -860,6 +932,11 @@ function drawButton(i, j, btnIndex) {
                 stroke(0);
                 fill(0);
             }
+            var c = tinycolor(myBoard.buttons[btnIndex].background_color);
+            if (c.getBrightness() < 110) {
+                stroke(255);
+                fill(255);
+            }
             strokeWeight(0);
             switch (params.textPos) {
                 case 'top': // text at top
@@ -954,6 +1031,7 @@ function justSelected(x1, y1) {
     var txt = "";
     var tts = true;
     var instant = false;
+    let allowMute = true;
     try {
         if (y == rows) {
             switch (x) {
@@ -987,6 +1065,7 @@ function justSelected(x1, y1) {
             }
             if (act.includes(":speak")) {
                 doSpeak();
+                allowMute = false;
                 instant = true;
             }
             if (act.includes(":clear")) {
@@ -1001,9 +1080,11 @@ function justSelected(x1, y1) {
             var act = myBoard.buttons[btnIndex].action;
             if (act.includes(":home")) {
                 goHome();
+                return;
                 instant = true;
             } else if (act.includes(":speak")) {
                 doSpeak();
+                allowMute = false;
                 instant = true;
             } else if (act.includes(":clear")) {
                 doClear();
@@ -1040,7 +1121,8 @@ function justSelected(x1, y1) {
 
         if (myBoard.buttons[btnIndex].hasOwnProperty('load_board')) {
             if (params.vocaliseLinkButtons) {
-                speech.cancel();
+                if (allowMute)
+                    speech.cancel();
                 speech.speak(txt);
             }
             //document.body.style.transform = 'scale(' + (window.innerWidth / window.outerWidth) + ')';
@@ -1088,7 +1170,8 @@ function justSelected(x1, y1) {
                     buttonCount++;
                 }
                 if (tts && params.vocaliseEachButton) { // vocaliseLinkButtons
-                    speech.cancel();
+                    if (allowMute)
+                        speech.cancel();
                     speech.speak(txt);
                 }
                 if (homeBoardName != currentBoardName && params.autoReturnToHome)

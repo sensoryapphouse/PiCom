@@ -28,5 +28,7 @@
     }],
     "lang": "en-US",
     "start_url": "./index.html",
-    "display": "standalone"
+    "display": "standalone",
+    "theme_color": "#fae73d",
+  "background_color": "#b5dedf"
 }

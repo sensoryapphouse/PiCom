@@ -14,6 +14,7 @@ body {
     /* This centers our sketch vertically. */
     /*    align-items: flex-end;*/
     /* flex-start; flex-end; */
+    background-color: black;
 }
 
 
@@ -37,8 +38,8 @@ splash {
 
 settingsSplash {
     position: absolute;
-    top: 0vw;
-    right: 0vw;
+    top: 1vw;
+    right: 1.5vw;
     width: 5vw;
     height: 5vw;
     border: none;
@@ -47,6 +48,25 @@ settingsSplash {
     background-color: transparent;
     background-image: url(images/settings.png);
     background-size: 5vw 5vw;
+    background-position: left top;
+    background-repeat: no-repeat;
+    z-index: 2002;
+    opacity: .8;
+    -webkit-app-region: no-drag;
+}
+
+toggleSwitch {
+    position: absolute;
+    top: 6vw;
+    right: 1.5vw;
+    width: 5vw;
+    height: 4vw;
+    border: none;
+    color: black;
+    cursor: pointer;
+    background-color: transparent;
+    background-image: url(images/off.svg);
+    background-size: 5vw 4vw;
     background-position: left top;
     background-repeat: no-repeat;
     z-index: 2002;
@@ -300,3 +320,11 @@ crosshairs {
     pointer-events: none;
     -webkit-app-region: no-drag;
 }
+
+@media print {
+    .no-print {
+        visibility: hidden
+    }
+}
+
+/*added by DMS for no print of toolbar, see index.html*/

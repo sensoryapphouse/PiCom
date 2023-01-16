@@ -147,7 +147,7 @@ function setUpToolbar() {
     leftButton.style.width = "10vw";
     leftButton.style.border = 'none';
     leftButton.style.background = "none";
-    leftButton.style.backgroundImage = "url('images/button_blue.png')";
+    leftButton.style.backgroundImage = "url('images/Button_Blue.png')"; //ds changed
     leftButton.style.backgroundSize = "10vw 10vh";
     leftButton.tabIndex = -1;
     leftButton.onclick = function () {};
@@ -288,7 +288,7 @@ function setUpToolbar() {
     rightButton.style.width = "10vw";
     rightButton.style.border = 'none';
     rightButton.style.background = "none";
-    rightButton.style.backgroundImage = "url('images/button_red.png')";
+    rightButton.style.backgroundImage = "url('images/Button_Red.png')"; //DS changed
     rightButton.style.backgroundSize = "10vw 10vh";
     rightButton.tabIndex = -1;
     rightButton.onclick = function () {};
@@ -922,10 +922,10 @@ function removeToolbarHighlight() {
 function setUpForButtons() {
     jeelizCanvas.hidden = true;
     rightButton.hidden = false;
-    rightButton.style.backgroundImage = "url('images/button_red.png')";
+    rightButton.style.backgroundImage = "url('images/Button_Red.png')";
     rightButton.style.border = 'none';
     leftButton.hidden = false;
-    leftButton.style.backgroundImage = "url('images/button_blue.png')";
+    leftButton.style.backgroundImage = "url('images/Button_Blue.png')";
     leftButton.style.border = 'none';
     leftButton.style.height = "10vh";
     backspace.style.left = "75vw";

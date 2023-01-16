@@ -32,14 +32,16 @@ function showSettings2() {
     columnsGui.setValue(columns);
 }
 
+var saveName = "";
 
 function askToSave(s) {
+    saveName = s;
     if (communicatorChanged) {
         Notiflix.Confirm.show('Picom', 'Save changed communicator?', 'yes', 'no', function () {
             needToSave();
             saveFileObj(-1);
-
         }, function () {
+            loadBoard(saveName);
             saveFileObj(-1);
         });
     } else {
@@ -50,8 +52,9 @@ function askToSave(s) {
 }
 
 function needToSave() {
+    console.log("Need to save");
     if (webViewIOS)
-        shareFile();
+        share.Share_Board();
     else {
         doSaveFile();
     }
@@ -297,7 +300,7 @@ function setUpGUI2() {
     t3.__li.style.textAlign = "center";
 
 
-    var globalChange = gui2.addFolder("Advanced");
+    var globalChange = gui2.addFolder("Advanced [beta]");
     var t4 = globalChange.add(apply4, 'ChangeSymbolstoSAHstyle').name("Change to SAH Symbols");
     t4.__li.style.textAlign = "center";
     var t5 = globalChange.add(apply4, 'MakeImagesLocal').name("Make Images Local");
@@ -330,14 +333,15 @@ async function changeSymbols() {
         gotImages = true;
         var tmp = images[p].substring(images[p].lastIndexOf("/") + 1).replace(/\.[^/.]+$/, "").toLowerCase().trim();
         try {
-            var i = loadImage('SAHsymbols/' + tmp + '.svg');
-            await timer(20);
-            if (i.width > 1) {
+            let s1 = tmp + '.svg';
+            let tf = symbolZip.file(s1);
+            //            await timer(20);
+            if (tf != null) {
                 images[p] = 'SAHsymbols/' + tmp + '.svg';
                 console.log("Found: ", tmp);
                 Notiflix.Loading.change('Loading: ' + floor(changeCount / 10));
                 changeCount++;
-                pausecomp(20);
+                //                pausecomp(20);
                 // now delete internal file
                 zip.remove(images[p]);
             } else
@@ -352,13 +356,15 @@ async function changeSymbols() {
     if (!gotImages) {
         for (var i = 0; i < myBoard.buttons.length; i++) {
             try {
-                var tmpS = 'SAHsymbols/' + myBoard.buttons[i].label.toLowerCase() + '.svg'
-                var tmp = loadImage(tmpS);
-                pausecomp(100);
-                await timer(100);
+                var tmpS = 'SAHsymbols/' + myBoard.buttons[i].label.toLowerCase() + '.svg';
+                let s1 = myBoard.buttons[i].label.toLowerCase() + '.svg';
+                let tf = symbolZip.file(s1);
+                //                var tmp = loadImage(tmpS);
+                //                pausecomp(100);
+                //                await timer(100);
                 //            setTimeout(function () {
-                if (tmp.width > 1) {
-                    console.log("Found: ", tmp);
+                if (tf != null) {
+                    console.log("Found: ", s1);
                     var imgId = myBoard.buttons[i].image_id;
                     var tmpId = imageIndexFromId(imgId);
                     buttonsChanged = true;
@@ -384,7 +390,7 @@ async function changeSymbols() {
         for (var propt in s) {
             Notiflix.Loading.change('Changing: ' + s[propt]);
             setSymbolInfo(propt, s[propt]);
-            await timer(250);
+            await timer(5);
         }
     }
 
@@ -412,10 +418,10 @@ async function setSymbolInfo(s2, s1) {
         }
         // now save board
         var text = JSON.stringify(tmpBoard, null, ' ');
-        pausecomp(200);
+        //        pausecomp(200);
         zip.file(s1, text);
         console.log("Save: ", s1);
-        pausecomp(200);
+        //        pausecomp(200);
     }).catch(function (err) {
         console.error("Failed to open file:", err);
         tmpS = s1;

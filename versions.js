@@ -1,4 +1,4 @@
-var version = "V0.96 beta";
+var version = "V0.965 beta - 13-1-23";
 var testing = false;
 var deviceOptions = 'large'; // small or large
 var isChromium = navigator.userAgent.includes("Chrome");

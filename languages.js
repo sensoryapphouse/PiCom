@@ -77,7 +77,7 @@ var strFace = "Face Control";
 var strFaceExpressions = "Face Control (expressions)";
 
 var strArrows = "Use arrow keys to choose button to edit.";
-var strSettingsEditor = "Settings editor lkashdfklshdklf shafois \njashjhsajk.";
+var strSettingsEditor = "Settings editor";
 var strButtonEditor = "Button editor.";
 var strBoardEditor = "Board editor.";
 var strPreviewImage = "Preview image, background and border colours.";
@@ -88,7 +88,7 @@ var strBorderColour = "Set border colour for button.";
 var strDeleteSound = "Delete sound file for button.";
 var strLoadSound = "Load sound file from disc.";
 var strStopRecording = "Stop recording sound file.";
-var strRecordSound = "Record sound fine for button.";
+var strRecordSound = "Record sound file for button.";
 var strPlaySound = "Play sound file.";
 var strTextLabel = "Text label for button.";
 var strVolcaliseTooltip = "Alternative text to speak when button pressed.";
