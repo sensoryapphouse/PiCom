@@ -7,6 +7,11 @@
     <link rel="manifest" href="manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0 minimum-scale = 1.0,viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon-iphone-60x60.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="images/apple-touch-icon-ipad-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-iphone-retina-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="images/apple-touch-icon-ipad-retina-152x152.png">
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
     <script src="libraries/MarcTooltips.min.js"></script>
     <script src="libraries/p5.min.js"></script>
     <script src="libraries/p5.sound.min.js"></script>
@@ -156,16 +161,16 @@
 <body id="body">
 
     <crosshairs class="btn" hidden></crosshairs>
-    <buttonPanel id="panel" class="img" hidden=true></buttonPanel>
     <settingsSplash class=" btn" hidden enabled></settingsSplash>
     <startSplash class=" btn" hidden enabled></startSplash>
     <guideSplash class=" btn" enabled></guideSplash>
     <helpSplash class=" btn" enabled></helpSplash>
     <splash class=" btn" enabled></splash>
-    <editButton class=" btn" hidden enabled></editButton>
     <settings class=" btn" hidden enabled></settings>
     <closeButton class=" btn" hidden enabled></closeButton>
+    <editButton class=" btn" hidden enabled></editButton>
     <boardButton class=" btn" hidden enabled></boardButton>
+    <buttonPanel id="panel" class="img" hidden=true></buttonPanel>
     <toolbar class="no-print" id="picomBar"></toolbar><!-- added by DMS for no print-->
     <canvas hidden=true id='jeelizFaceExpressionsCanvas'></canvas>
     <toggleSwitch class="btn" hidden></toggleSwitch>

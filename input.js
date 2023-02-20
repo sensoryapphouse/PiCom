@@ -196,7 +196,7 @@ function mseEvent(event) {
     var xIndex;
     var yIndex;
 
-    if (params.boardStyle == 'ToolbarTop') {
+    if (params.boardStyle == strToolbarTop) {
         if (smallPortrait) {
             xIndex = floor(map(event.pageX, 0, layoutViewport.offsetWidth, 0, rows));
             yIndex = floor(map(event.pageY, offsetForBoard, layoutViewport.offsetHeight, 0, columns));
@@ -253,7 +253,7 @@ function mouseMoved(event) {
         return;
     if (guiVisible)
         return;
-    if (params.boardStyle == 'ToolbarTop') {
+    if (params.boardStyle == strToolbarTop) {
         if (smallPortrait) {
             currentX = floor(map(event.pageX, 0, layoutViewport.offsetWidth, 0, rows));
             currentY = floor(map(event.pageY, offsetForBoard, viewport.height, 0, columns));

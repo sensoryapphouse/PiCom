@@ -87,32 +87,34 @@ function boardsLoaded() {
 }
 
 function resetParams() {
-    localStorage.clear();
+    //    localStorage.clear();
     params = defaultParams;
-    loadFileObj();
+    //    loadFileObj();
     setTimeout(function () {
+        console.log("Reset");
         boardsJson = loadJSON("boards/boards.json", boardsLoaded);
+        loadFileObj();
     }, 50);
 }
 
 function loadParams() {
     try {
+        console.log("Load Params");
         //        throw "null";
         var s = window.localStorage.getItem("PiCom");
         if (s == null)
             throw "null";
         params = JSON.parse(s);
+        if ((strTop + strBottom + strNone).indexOf(params.textPos) < 0) {
+            throw "null"; // machine language changed 
+        }
         boardsJson = loadJSON("boards/boards.json", boardsLoaded);
+        console.log("LoadParams");
         loadFileObj();
-        if (params.tooltips == null) {
-            throw "null";
-        }
-        if (params.buttonEditor == null || params.chkHideSettings == null) {
-            throw "null";
-        }
     } catch (e) {
         resetParams();
     };
+    doToggle();
     //    if (smallPortrait) {
     //        if (params.boardStyle == 'ToolbarBottom')
     //            params.boardStyle = 'ToolbarTop';
@@ -236,12 +238,12 @@ async function doSaveFile() {
 function nowLoad() {
     console.log("Now load", nowLoadFile);
     if (nowLoadFile) {
-        Notiflix.Confirm.show('Picom', 'Now choose file to import?', 'yes', 'no', function () {
+        Notiflix.Confirm.show('Picom', strNowChoose, strYes, strNo, function () {
             nowLoadFile = false;
             var fileLoad1 = document.getElementById('file-input').click();
         }, function () {});
         //        alert("Now choose file to import");
-    } else
+    } else if (reloadBoard)
         loadBoard(saveName);
     saveName = "";
 }
@@ -313,6 +315,7 @@ function blobToFile(theBlob, fileName) {
 async function loadFileObj() {
     //    await idbKeyval.set("file", obj);
     try {
+        console.log("Load file object");
         fileObj = await idbKeyval.get("file");
         if (fileObj == -1) {
             loadBoard('boards/' + params.boardName);
@@ -387,11 +390,12 @@ function showEdit() {
 }
 
 function showSettings() {
+    settingsSplash.hidden = true;
     showTabs(lastTab);
     if (!buttonPanel.hidden)
         closeEdit();
     if (smallPortrait) {
-        gui.width = window.innerWidth;
+        gui.width = window.innerWidth * .8;
     } else {
         gui.width = window.innerWidth * .319;
     }
@@ -404,7 +408,7 @@ var nowLoadFile = false;
 function askToSave2(s) {
     saveName = "";
     if (communicatorChanged) {
-        Notiflix.Confirm.show('Picom', 'Save changed communicator?', 'yes', 'no', function () {
+        Notiflix.Confirm.show('Picom', strCommunicatorChanged, strYes, strNo, function () {
             nowLoadFile = true;
             needToSave();
             saveFileObj(null);
@@ -491,7 +495,7 @@ async function shareFile(file) {
             await navigator.share({
                 files,
                 title: 'PiCom',
-                text: 'Share communicator board(s)'
+                text: strShareCommunicator
             })
             //            output.textContent = 'Shared!'
         } catch (error) {
@@ -671,7 +675,6 @@ function setUpGUI() {
     guiBoardName.open();
 
     var inputOptions = gui.addFolder(strInputOptions);
-    var inputMethod;
     if (webViewIOS) //webViewIOS
         inputMethod = inputOptions.add(params, 'inputMethod', ['Touch/Mouse', 'Touchpad', 'Analog Joystick', 'Cursor Keys/Dpad', 'MouseWheel', 'Switches'
                                    // , 'Face', 'Eyes'
@@ -683,7 +686,7 @@ function setUpGUI() {
 
     var enableZoom = inputOptions.add(params, 'allowZoom').name(strAllowZoom);
 
-    var touchpadMode = inputOptions.add(params, 'touchpadMode', ['Absolute', 'Joystick']).name(strTouchpadMode).onChange(touchpadOptions);
+    var touchpadMode = inputOptions.add(params, 'touchpadMode', [strAbsolute, strJoystick]).name(strTouchpadMode).onChange(touchpadOptions);
     //    if (smallPortrait) {
     //        inputMethod.__li.style.display = "none";
     //    }
@@ -692,10 +695,10 @@ function setUpGUI() {
         currentX = floor(columns / 2);
         currentY = floor(rows / 2);
         switch (params.touchpadMode) {
-            case 'Absolute':
+            case strAbsolute:
                 speed.__li.style.display = "none";
                 break;
-            case 'Joystick':
+            case strJoystick:
                 speed.__li.style.display = "";
                 break;
         }
@@ -863,40 +866,40 @@ function setUpGUI() {
     //    if (smallPortrait) {
     //        visual.add(params, 'boardStyle', ['Fullscreen', 'ToolbarTop']).name(strToolbar).onChange(toolbarPos);
     //    } else {
-    visual.add(params, 'boardStyle', ['Fullscreen', 'ToolbarTop', 'ToolbarBottom']).name(strToolbar).onChange(toolbarPos);
+    visual.add(params, 'boardStyle', [strFullscreen, strToolbarTop, strToolbarBottom]).name(strToolbar).onChange(toolbarPos);
     //    }
 
     function toolbarPos() {
         switch (params.boardStyle) {
-            case 'Fullscreen':
+            case strFullscreen:
                 picomBar.hidden = true;
                 gui_container.style.top = '5vh';
                 break;
-            case 'ToolbarTop':
+            case strToolbarTop:
                 picomBar.hidden = false;
                 picomBar.style.top = '0vh';
                 picomBar.style.bottom = '90vh';
                 gui_container.style.top = '5vh';
                 break;
-            case 'ToolbarBottom':
+            case strToolbarBottom:
                 picomBar.hidden = false;
                 picomBar.style.top = '90vh';
                 picomBar.style.bottom = '0vh';
                 gui_container.style.top = '5vh';
                 break;
         }
-        if (params.boardStyle == 'Fullscreen') // full screen
+        if (params.boardStyle == strFullscreen) // full screen
             hWindow = viewport.height;
         else // toolbar
             hWindow = viewport.height * .9;
         windowResized();
         refreshBoard = 1;
     }
-    visual.add(params, 'textPos', ['top', 'bottom', 'none']).name(strLabelPosition).onChange(
+    visual.add(params, 'textPos', [strTop, strBottom, strNone]).name(strLabelPosition).onChange(
         function () {
             refreshBoard = 1;
         });
-    visual.add(params, 'buttonSpacing', ['small', 'medium', 'large']).name(strSpacing).onChange(
+    visual.add(params, 'buttonSpacing', [strSmall, strMedium, strLarge]).name(strSpacing).onChange(
         function () { // grey out background colour if high contrast
             refreshBoard = 1;
         });
@@ -961,19 +964,19 @@ function setUpGUI() {
     speechSettings.add(params, 'vocaliseLinkButtons').name(strSpeakOnLink);
     var advancedSettings = gui.addFolder(strAdvanced);
     advancedSettings.add(params, 'autoReturnToHome').name(strAutoHome);
-    advancedSettings.add(params, 'tooltips').name("Show Tooltips").onChange(function () {
+    advancedSettings.add(params, 'tooltips').name(strShowTooltips).onChange(function () {
         if (params.tooltips)
             root.style.setProperty('--change', 70);
         else
             root.style.setProperty('--change', 0);
     });
 
-    advancedSettings.add(params, 'buttonEditor').name("Button Editor").onChange(function () {
+    advancedSettings.add(params, 'buttonEditor').name(strButtonEditor).onChange(function () {
         editButton.hidden = !params.buttonEditor;
     });
 
-    advancedSettings.add(params, 'chkHideSettings').name("Hide Settings Button").onChange(function () {
-        settingsSplash.hidden = params.chkHideSettings;
+    advancedSettings.add(params, 'chkHideSettings').name(strHideSettingsButton).onChange(function () {
+        //        settingsSplash.hidden = params.chkHideSettings;
     });
 
     setOptions();

@@ -38,8 +38,8 @@ splash {
 
 settingsSplash {
     position: absolute;
-    top: 1vw;
-    right: 1.5vw;
+    top: -10vw;
+    right: 2vw;
     width: 5vw;
     height: 5vw;
     border: none;
@@ -57,8 +57,8 @@ settingsSplash {
 
 toggleSwitch {
     position: absolute;
-    top: 6vw;
-    right: 1.5vw;
+    top: -10vw;
+    right: 2vw;
     width: 5vw;
     height: 4vw;
     border: none;
@@ -84,7 +84,7 @@ settingsSplash:active {
 
 startSplash {
     position: absolute;
-    bottom: 2vw;
+    bottom: 2.5vw;
     right: 2vw;
     width: 10vw;
     height: 10vw;
@@ -107,8 +107,8 @@ startSplash:active {
 
 helpSplash {
     position: absolute;
-    left: 2vw;
-    bottom: 2vw;
+    left: -20vw;
+    bottom: 2.5vw;
     width: 10vw;
     height: 10vw;
     cursor: pointer;
@@ -130,8 +130,8 @@ helpSplash:active {
 
 guideSplash {
     position: absolute;
-    left: 2vw;
-    top: 2vw;
+    left: -20vw;
+    top: 2.25vw;
     width: 10vw;
     height: 10vw;
     cursor: pointer;
@@ -176,27 +176,31 @@ guideSplash:active {
     top: 0vh;
     left: 0vw;
     z-index: 3000;
-    transform: scale(1.1);
+    transform: scale(1.25);
 }
 
 #gui {
     position: absolute;
-    top: 4vh;
+    top: 3.75vh;
     left: .9vw;
-    height: 80vh;
+    height: 70vh;
     opacity: .95;
     border: outset;
     border: none;
+    overflow-y: auto;
+    overflow-x: auto;
 }
 
 #gui2 {
     position: absolute;
-    top: 4vh;
+    top: 3.75vh;
     left: .9vw;
-    height: 80vh;
+    height: 70vh;
     opacity: .95;
     border: outset;
     border: none;
+    overflow-y: auto;
+    overflow-x: auto;
 }
 
 buttonPanel {

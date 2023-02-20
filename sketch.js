@@ -124,7 +124,7 @@ window.onload = () => {
         e.preventDefault();
     }
     guideSplash.onclick = function (e) {
-        window.open("https://www.sensoryapphouse.com//picomhelp", "Sensory App House", "toolbar=yes,scrollbars=yes,resizable=yes");
+        window.open("https://www.sensoryapphouse.com/picom-help-faq/", "Sensory App House", "toolbar=yes,scrollbars=yes,resizable=yes");
         showSplashButtons();
         e.stopPropagation();
         e.preventDefault();
@@ -134,7 +134,7 @@ window.onload = () => {
         e.stopPropagation();
         e.preventDefault();
         showSplashButtons();
-        window.open("https://www.sensoryapphouse.com//picominfo", "Sensory App House", "toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500");
+        window.location.assign("picomhelp.html", "_blank", "toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500");
     }
 
     crosshairs = document.querySelector('crosshairs');
@@ -153,44 +153,7 @@ window.onload = () => {
     //        startSplash.hidden = false;
     //    }, 500);
 
-    settingsSplash.onmousedown = function (e) {
-        setUpGUI();
-        lastTab = 1;
-        startSplash.hidden = true;
-        splash.hidden = true;
-        guideSplash.hidden = true;
-        helpSplash.hidden = true;
-        toggleSwitch.hidden = true;
-        showSettings();
-        showTabs(1);
-        e.stopPropagation();
-        e.preventDefault();
-    }
-
-    settingsSplash.onmouseup = function (e) {
-        e.stopPropagation();
-        e.preventDefault();
-    }
-
-    settingsSplash.ontouchstart = function (e) {
-        setUpGUI();
-        lastTab = 1;
-        startSplash.hidden = true;
-        splash.hidden = true;
-        guideSplash.hidden = true;
-        helpSplash.hidden = true;
-        toggleSwitch.hidden = true;
-        showSettings();
-        showTabs(1);
-        e.stopPropagation();
-        e.preventDefault();
-    };
-    settingsSplash.ontouchend = function (e) {
-        e.stopPropagation();
-        e.preventDefault();
-    }
-
-    startSplash.onclick = function (e) {
+    function startCommunicator(showMenu) {
         setUpGUI();
         lastTab = 1;
         startSplash.hidden = true;
@@ -199,8 +162,37 @@ window.onload = () => {
         helpSplash.hidden = true;
         toggleSwitch.hidden = true;
         doSettingsSplash();
+        if (showMenu)
+            showSettings();
+        //        showTabs(1);
+        windowResized();
+    }
+
+    settingsSplash.onmousedown = function (e) {
         e.stopPropagation();
         e.preventDefault();
+        startCommunicator(true);
+    }
+
+    settingsSplash.onmouseup = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    settingsSplash.ontouchstart = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        startCommunicator(true);
+    };
+    settingsSplash.ontouchend = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    startSplash.onclick = function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        startCommunicator(false);
     }
 
     startSplash.onmouseup = function (e) {
@@ -229,7 +221,7 @@ window.onload = () => {
         lastTab = 2;
         showEdit();
         settingsButton.style.zIndex = "1500";
-        showTabs(2);
+        //        showTabs(2);
         e.stopPropagation();
         e.preventDefault();
     }
@@ -263,16 +255,16 @@ window.onload = () => {
     jeelizCanvas = document.getElementById('jeelizFaceExpressionsCanvas');
     jeelizCanvas.hidden = false;
     setUpToolbar();
-    initLanguages();
+    //    initLanguages();
 }
 
 async function initSymbolsZip() {
     let blob = await fetch("./SAHsymbols.zip").then(r => r.blob());
     symbolZip = new JSZip();
     symbolZip.loadAsync(blob).then(function (symbolzipinfo) {
-
         console.log("SAH symbols loaded");
         symbolZipData = symbolzipinfo;
+        initLanguages();
     }).catch(function (err) {
         console.error("Failed to open");
     })
@@ -285,7 +277,7 @@ window.addEventListener("orientationchange", function () {
 function windowResized() {
     //    var layoutViewport = document.getElementById('layoutViewport');
     smallPortrait = (layoutViewport.offsetHeight > layoutViewport.offsetWidth);
-    if (params.boardStyle == 'Fullscreen') // full screen
+    if (params.boardStyle == strFullscreen) // full screen
         hWindow = layoutViewport.offsetHeight;
     else // toolbar
         hWindow = layoutViewport.offsetHeight * .9;
@@ -310,17 +302,36 @@ function windowResized() {
 
     try {
         if (smallPortrait) {
+            if (startSplash.hidden) {
+                settingsSplash.style.top = "1.7vh";
+                settingsSplash.style.right = "1.5vw";
+            } else {
+                settingsSplash.style.top = "2vw";
+            }
             settingsSplash.style.width = "10vw";
             settingsSplash.style.height = "10vw";
             settingsSplash.style.backgroundSize = "10vw 10vw";
+
+            guideSplash.style.left = "2vw";
+            guideSplash.style.width = "15vw";
+            guideSplash.style.height = "15vw";
+            guideSplash.style.backgroundSize = "15vw 15vw";
+            helpSplash.style.left = "2vw";
+            helpSplash.style.width = "15vw";
+            helpSplash.style.height = "15vw";
+            helpSplash.style.backgroundSize = "15vw 15vw";
+            startSplash.style.width = "15vw";
+            startSplash.style.height = "15vw";
+            startSplash.style.backgroundSize = "15vw 15vw";
+
             toggleSwitch.style.width = "10vw";
             toggleSwitch.style.height = "5vw";
-            toggleSwitch.style.top = "12vw";
+            toggleSwitch.style.top = "13vw";
             toggleSwitch.style.backgroundSize = "10vw 5vw";
             gui.width = window.innerWidth * .9;
             gui2.width = window.innerWidth * .9;
             closeButton.style.left = "1vw";
-            closeButton.style.width = "12vw";
+            closeButton.style.width = "9vw";
             settingsButton.style.left = "9vw";
             settingsButton.style.width = "14vw";
             boardButton.style.left = "22vw";
@@ -389,17 +400,35 @@ function windowResized() {
             imgUparrow.style.width = "4vw";
             imgUparrow.style.left = "14vw";
         } else {
+            if (startSplash.hidden) {
+                settingsSplash.style.top = "2vh";
+                settingsSplash.style.right = "1.5vw";
+            } else {
+                settingsSplash.style.top = "2vw";
+            }
+            guideSplash.style.left = "2vw";
+            guideSplash.style.width = "10vw";
+            guideSplash.style.height = "10vw";
+            guideSplash.style.backgroundSize = "10vw 10vw";
+            helpSplash.style.left = "2vw";
+            helpSplash.style.width = "10vw";
+            helpSplash.style.height = "10vw";
+            helpSplash.style.backgroundSize = "10vw 10vw";
+            startSplash.style.width = "10vw";
+            startSplash.style.height = "10vw";
+            startSplash.style.backgroundSize = "10vw 10vw";
+
             settingsSplash.style.width = "5vw";
             settingsSplash.style.height = "5vw";
             settingsSplash.style.backgroundSize = "5vw 5vw";
             toggleSwitch.style.width = "5vw";
             toggleSwitch.style.height = "4vw";
-            toggleSwitch.style.top = "6vw";
+            toggleSwitch.style.top = "7vw";
             toggleSwitch.style.backgroundSize = "5vw 5vw";
             gui.width = window.innerWidth * .319;
             gui2.width = window.innerWidth * .319;
             closeButton.style.left = "1vw";
-            closeButton.style.width = "5vw";
+            closeButton.style.width = "4vw";
             settingsButton.style.left = "4.3vw";
             settingsButton.style.width = "7vw";
             boardButton.style.left = "11vw";
@@ -552,9 +581,8 @@ async function getZip(s) {
             clearTimeout(NotiflixLoadingTmr);
             NotiflixLoadingTmr = null;
             Notiflix.Loading.remove();
-            alert("File did not load");
+            alert(strFileNotLoad);
             console.log("Load error");
-            showSplashButtons();
             return;
         });
     zip = null;
@@ -619,6 +647,8 @@ function manifestLoaded() {
 var re = /(?:\.([^.]+))?$/;
 var counter;
 async function jsonLoaded() {
+    let loadedZipfile = false;
+    let loadedZipcount = 0;
     console.log("Json loaded");
     gotGIF = false;
     setFaceSpeed(1000);
@@ -627,9 +657,17 @@ async function jsonLoaded() {
     rows = myBoard.grid.rows;
     columns = myBoard.grid.columns;
     //    toConvert = [];
+    let cBoard = false; // cBoard doesn't seem to include images at thart of path so fix it
     try {
-        for (var i = 0; i < myBoard.images.length; i++) {
+        cBoard = (myBoard.url.includes("app.cboard") > 0);
+    } catch (e) {}
+    try {
+        for (let i = 0; i < myBoard.images.length; i++) {
+            if (cBoard)
+                myBoard.images[i].path = "images" + myBoard.images[i].path;
             counter = i;
+            loadedZipcount = 0;
+            loadedZipfile = false;
             imgs[i] = null;
             var im = myBoard.images[i];
             if (im.hasOwnProperty('data'))
@@ -640,34 +678,50 @@ async function jsonLoaded() {
                     let s1 = myBoard.images[i].path.replace(/^.*[\\\/]/, '');
                     symbolZip.file(s1).async('base64').then(function (data) {
                         imgs[counter] = loadImage("data:image/svg+xml;base64," + data, imageLoaded);
-                        //                            imgs[counter].width = 250;
-                        //                            imgs[counter].height = 250;
+                        loadedZipfile = true;
                     }).catch(function (err) {
                         console.error("Failed to open file:", err);
+                        loadedZipfile = true;
                     })
-                    await timer(6);
+                    while (!loadedZipfile) {
+                        await timer(1);
+                        loadedZipcount++;
+                        if (loadedZipcount > 200)
+                            break;
+                        console.log(loadedZipcount);
+                    }
                 } else {
-                    if (boardDiskFormat == 1)
+                    if (boardDiskFormat == 1) {
                         imgs[i] = await loadImage(boardsFolderName + myBoard.images[i].path, imageLoaded);
-                    else { // now read images from zip
+                        loadedZipfile = true;
+                    } else { // now read images from zip
                         var ext = re.exec(myBoard.images[i].path)[1];
                         if (ext == 'svg') {
                             //                        console.log(counter + " " + myBoard.images[i].path)
                             const fileStr2 = await zipData.file(myBoard.images[i].path).async('base64').then(function (data) {
                                 imgs[counter] = loadImage("data:image/svg+xml;base64," + data, imageLoaded);
+                                loadedZipfile = true;
                                 //                            imgs[counter].width = 250;
                                 //                            imgs[counter].height = 250;
                             }).catch(function (err) {
-                                console.error("Failed to open file:", err);
+                                //                                console.error("Failed to open file:", err);
+                                //                                loadedZipfile = true;
                             })
                         } else {
                             const fileStr = await zipData.file(myBoard.images[i].path).async('base64').then(function (data) {
                                 imgs[counter] = loadImage("data:image/" + ext + ";base64," + data, imageLoaded);
+                                loadedZipfile = true;
                             }).catch(function (err) {
                                 console.error("Failed to open file:", err);
+                                loadedZipfile = true;
                             })
                         }
                     }
+                    await timer(1);
+                    loadedZipcount++;
+                    if (loadedZipcount > 200)
+                        break;
+                    console.log(loadedZipcount);
                 }
                 if (myBoard.images[i].path.toLowerCase().includes(".gif")) {
                     gotGIF = true;
@@ -685,7 +739,7 @@ async function jsonLoaded() {
         setTimeout(function () {
             setFaceSpeed(0);
             loadingBoard = false;
-        }, 500);
+        }, 50);
 
     } catch (e) {
         console.log(e);
@@ -696,7 +750,7 @@ async function jsonLoaded() {
         console.log("Image load error");
     }
 
-    setTimeout(windowResized, 100);
+    setTimeout(windowResized, 50);
 
     function imageLoaded() {
         clearTimeout(tmrLoad);
@@ -736,24 +790,22 @@ function setup() {
     cvs = createCanvas(viewport.width, viewport.height); //hWindow);
     stepx = viewport.width / columns;
     stepy = hWindow / rows;
-    setTimeout(function () {
-        loadParams();
-        if (params.boardStyle == 'Fullscreen')
-            hWindow = viewport.height;
-        else
-            hWindow = viewport.height * .9;
-        toggleSwitch.hidden = false;
-        if (params.chkHideSettings)
-            toggleSwitch.style.backgroundImage = "url('images/off.svg')";
-        else
-            toggleSwitch.style.backgroundImage = "url('images/on.svg')";
-        //        setTimeout(setUpGUI, 150);
-    }, 500);
-    //    setTimeout(loadParams, 500);
     frameRate(10);
     window.setInterval(function () { //refresh every five seconds if not done already
         refreshBoard++;
     }, 5000);
+}
+
+function doToggle() {
+    if (params.boardStyle == strFullscreen)
+        hWindow = viewport.height;
+    else
+        hWindow = viewport.height * .9;
+    toggleSwitch.hidden = false;
+    if (params.chkHideSettings)
+        toggleSwitch.style.backgroundImage = "url('images/off.svg')";
+    else
+        toggleSwitch.style.backgroundImage = "url('images/on.svg')";
 }
 
 var busy = false;
@@ -892,13 +944,13 @@ function drawButton(i, j, btnIndex) {
             var xShrink = 0; // 10 and 20
             var yShrink = 0;
             switch (params.buttonSpacing) {
-                case 'small':
+                case strSmall:
                     break;
-                case 'medium':
+                case strMedium:
                     xShrink = stepx / 20;
                     yShrink = stepy / 20;
                     break;
-                case 'large':
+                case strLarge:
                     xShrink = stepx / 10;
                     yShrink = stepy / 10;
                     break;
@@ -939,7 +991,7 @@ function drawButton(i, j, btnIndex) {
             }
             strokeWeight(0);
             switch (params.textPos) {
-                case 'top': // text at top
+                case strTop: // text at top
                     if (imgs[imgIndex] != null)
                         image(imgs[imgIndex],
                             stepx / 8 + j * stepx + offset + xShrink,
@@ -951,7 +1003,7 @@ function drawButton(i, j, btnIndex) {
                         offset + stepy / 40 + i * stepy + stepy / 40 + offsetForBoard + yShrink,
                         stepx * .95 - 2 * xShrink, stepy / 5);
                     break;
-                case 'bottom': // text at bottom
+                case strBottom: // text at bottom
                     textAlign(CENTER, BOTTOM);
                     text(txt, offset + stepx / 40 + j * stepx + xShrink, offset + stepy / 40 + i * stepy + stepy * .925 - yShrink + offsetForBoard, stepx * .95 - 2 * xShrink);
                     if (imgs[imgIndex] != null)
@@ -961,7 +1013,7 @@ function drawButton(i, j, btnIndex) {
                             stepx * .75 - xShrink * 2,
                             stepy * .75 - yShrink * 2);
                     break;
-                case 'none': // no text
+                case strNone: // no text
                     if (imgs[imgIndex] != null)
                         image(imgs[imgIndex], stepx / 8 + j * stepx + xShrink, stepy / 8 + i * stepy + offsetForBoard + yShrink, stepx * .75 - 2 * xShrink, stepy * .75 - 2 * yShrink);
                     break;
@@ -1114,6 +1166,11 @@ function justSelected(x1, y1) {
                     tts = true;;
             }
         } else if (myBoard.buttons[btnIndex].hasOwnProperty('label')) {
+            if (myBoard.buttons[btnIndex].label.includes("https")) {
+                var theURL = myBoard.buttons[btnIndex].label.match(/\bhttps?:\/\/\S+/gi);
+                window.open(theURL, "_blank", "toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500");
+                return;
+            }
             txt = myBoard.buttons[btnIndex].label;
             if (!myBoard.buttons[btnIndex].hasOwnProperty('load_board'))
                 textToSpeak += " | " + txt;
@@ -1138,7 +1195,7 @@ function justSelected(x1, y1) {
             }
 
             //       speech.speak("load board");
-        } else { // add info to message area
+        } else { // add info to message area - also do righttoleft
             if (myBoard.buttons[btnIndex].label == "Top Page") {
                 goHome();
             } else {
@@ -1156,16 +1213,30 @@ function justSelected(x1, y1) {
                         }
                     }
 
-                    if (params.textPos != "none")
-                        btnsLabels[buttonCount].textContent = myBoard.buttons[btnIndex].label;
                     var imgIndex = imageIndexFromId(myBoard.buttons[btnIndex].image_id);
-                    if (imgIndex >= 0) {
-                        ctx.fillStyle = "#FFFFFF";
-                        ctx.fillRect(buttonCount * 100, 0, 100, 150);
-                        if (params.textPos == "none")
-                            ctx.drawImage(imgs[imgIndex].canvas, 2 + buttonCount * 100, 2, 96, 148);
-                        else
-                            ctx.drawImage(imgs[imgIndex].canvas, 2 + buttonCount * 100, 2, 96, 120);
+                    if (rightToLeft) {
+                        let bc = 9 - buttonCount;
+                        if (params.textPos != strNone)
+                            btnsLabels[bc].textContent = myBoard.buttons[btnIndex].label;
+                        if (imgIndex >= 0) {
+                            ctx.fillStyle = "#FFFFFF";
+                            ctx.fillRect(bc * 100, 0, 100, 150);
+                            if (params.textPos == strNone)
+                                ctx.drawImage(imgs[imgIndex].canvas, 2 + bc * 100, 2, 96, 148);
+                            else
+                                ctx.drawImage(imgs[imgIndex].canvas, 2 + bc * 100, 2, 96, 120);
+                        }
+                    } else {
+                        if (params.textPos != strNone)
+                            btnsLabels[buttonCount].textContent = myBoard.buttons[btnIndex].label;
+                        if (imgIndex >= 0) {
+                            ctx.fillStyle = "#FFFFFF";
+                            ctx.fillRect(buttonCount * 100, 0, 100, 150);
+                            if (params.textPos == strNone)
+                                ctx.drawImage(imgs[imgIndex].canvas, 2 + buttonCount * 100, 2, 96, 148);
+                            else
+                                ctx.drawImage(imgs[imgIndex].canvas, 2 + buttonCount * 100, 2, 96, 120);
+                        }
                     }
                     buttonCount++;
                 }
@@ -1181,10 +1252,9 @@ function justSelected(x1, y1) {
                         myBoard = loadJSON(homeBoardName, jsonLoaded);
             }
         }
-        if (params.boardStyle == 'Fullscreen') // don't build up dispay if no toolbar
+        if (params.boardStyle == strFullscreen) // don't build up dispay if no toolbar
             doClear();
     } catch (e) {}
-
 }
 
 function soundLoaded() {

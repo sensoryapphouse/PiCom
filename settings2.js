@@ -9,6 +9,7 @@ var addBlank = null;
 var blankBoard = null;
 var changedBoard;
 var currentBoard;
+var reloadBoard = true;
 
 var defaultParams2 = {
     //    isFullscreen: false,
@@ -22,7 +23,7 @@ var params2 = defaultParams2;
 
 function showSettings2() {
     if (smallPortrait) {
-        gui2.width = window.innerWidth * .9;
+        gui2.width = window.innerWidth * .8;
     } else {
         gui2.width = window.innerWidth * .319;
     }
@@ -37,7 +38,7 @@ var saveName = "";
 function askToSave(s) {
     saveName = s;
     if (communicatorChanged) {
-        Notiflix.Confirm.show('Picom', 'Save changed communicator?', 'yes', 'no', function () {
+        Notiflix.Confirm.show('Picom', strCommunicatorChanged, strYes, strNo, function () {
             needToSave();
             saveFileObj(-1);
         }, function () {
@@ -249,9 +250,16 @@ function setUpGUI2() {
         },
         MakeImagesLocal: function () {
             embedImages();
+        },
+        TranslateText: function () {
+            reloadBoard = false;
+            LOADJSON("Translations/en-zulu.json", translateText);
+        },
+        extractText: function () {
+            extractText();
         }
-    };
 
+    };
 
     //    var c = gui2.add(close, 'X').name("🅇");
     gui2.__closeButton.hidden = true;
@@ -300,11 +308,35 @@ function setUpGUI2() {
     t3.__li.style.textAlign = "center";
 
 
-    var globalChange = gui2.addFolder("Advanced [beta]");
-    var t4 = globalChange.add(apply4, 'ChangeSymbolstoSAHstyle').name("Change to SAH Symbols");
+    var globalChange = gui2.addFolder(strAdvancedBeta);
+    var t4 = globalChange.add(apply4, 'ChangeSymbolstoSAHstyle').name(strChangeToSAH);
     t4.__li.style.textAlign = "center";
-    var t5 = globalChange.add(apply4, 'MakeImagesLocal').name("Make Images Local");
+    var t5 = globalChange.add(apply4, 'MakeImagesLocal').name(strMakeLocal);
     t5.__li.style.textAlign = "center";
+
+    /*
+        var t6 = globalChange.add(apply4, 'TranslateText').name("Translate Boards");
+        t6.__li.style.textAlign = "center";
+        globalChange.add(apply4, 'extractText').name("Extract Text");
+        */
+
+    //    languageCode = window.localStorage.getItem("PiComL");
+    if (languageCode == null) {
+        //        localStorage.clear();
+        languageCode = 'en';
+        window.localStorage.setItem("PiComL", "en");
+    }
+    var lang = {
+        language: languageCode
+    }
+    let l1 = globalChange.add(lang, "language", Object.keys(lang_map)).name('🇨🇦🇫🇷🇮🇹🇯🇵🇬🇧🇺🇸').onChange(function () {
+        languageCode = lang.language;
+        window.localStorage.setItem("PiComL", languageCode);
+        // saveFileObj(null);
+        setTimeout(function () {
+            window.location.reload(true);
+        }, 500);
+    });
 
     //    newComName.setValue("name test");
     //    var s = newComName.object.name;
@@ -312,9 +344,11 @@ function setUpGUI2() {
     currentBoard.open();
     addBoard.open();
     newCom.open();
+//    globalChange.open();
     gui2.hide();
     boardUtils();
 }
+var languageCode = 'en';
 
 // *****************************************************************
 //
@@ -324,7 +358,7 @@ function setUpGUI2() {
 
 var changeCount = 1;
 async function changeSymbols() {
-    Notiflix.Loading.dots('Loading...');
+    Notiflix.Loading.dots(strLoading + '...');
     var s = manifestInfo.paths.boards;
     var images = manifestInfo.paths.images;
 
@@ -339,7 +373,7 @@ async function changeSymbols() {
             if (tf != null) {
                 images[p] = 'SAHsymbols/' + tmp + '.svg';
                 console.log("Found: ", tmp);
-                Notiflix.Loading.change('Loading: ' + floor(changeCount / 10));
+                Notiflix.Loading.change(strLoading + ': ' + floor(changeCount / 10));
                 changeCount++;
                 //                pausecomp(20);
                 // now delete internal file
@@ -388,7 +422,7 @@ async function changeSymbols() {
         zip.file(currentZipBoard, text);
     } else {
         for (var propt in s) {
-            Notiflix.Loading.change('Changing: ' + s[propt]);
+            Notiflix.Loading.change('... ' + s[propt]);
             setSymbolInfo(propt, s[propt]);
             await timer(5);
         }
@@ -400,6 +434,118 @@ async function changeSymbols() {
     await timer(250);
     currentZipBoard = "";
     loadZipBoard(homeBoardName);
+}
+
+var translations = {};
+
+async function extractText() { // pull all values out of name fields on all boards and save
+    Notiflix.Loading.dots(strLoading + '...');
+    var s = manifestInfo.paths.boards;
+    for (var propt in s) {
+        console.log("Board: ", s[propt])
+        ExtractTextForBoard(s[propt]);
+        await timer(20);
+    }
+    Notiflix.Loading.remove();
+    const ordered = Object.keys(translations).sort().reduce(
+        (obj, key) => {
+            obj[key] = translations[key];
+            return obj;
+        }, {}
+    );
+    let txt = JSON.stringify(ordered, null, ' ')
+    await timer(250);
+    currentZipBoard = "";
+
+    function download(content, fileName, contentType) {
+        var a = document.createElement("a");
+        var file = new Blob([content], {
+            type: contentType
+        });
+        a.href = URL.createObjectURL(file);
+        a.download = fileName;
+        a.click();
+    }
+    download(txt, 'board.json', 'text/plain');
+    loadZipBoard(homeBoardName);
+}
+
+async function ExtractTextForBoard(s) {
+    imagesLoaded = false;
+    await zipData.file(s).async("string").then(function (data2) {
+        //        //        console.log(data2);
+        tmpBoard = JSON.parse(data2);
+        for (i = 0; i < tmpBoard.buttons.length; i++) {
+            if (tmpBoard.buttons[i].hasOwnProperty('label')) {
+                //                        console.log(tmpBoard.buttons[i].label);
+                if (translations.hasOwnProperty(tmpBoard.buttons[i].label)) console.log("Duplicate: ", tmpBoard.buttons[i].label);
+                else
+                    translations[tmpBoard.buttons[i].label.toLowerCase()] = tmpBoard.buttons[i].label;
+            }
+        }
+    }).catch(function (err) {
+        console.error("Failed to open file:", err);
+    })
+}
+
+let transJson;
+let waiting;
+async function translateText(ttext) { // pull all values out of name fields on all boards and save
+    transJson = JSON.parse(ttext);
+    Notiflix.Loading.dots(strLoading + '...');
+
+    var s = manifestInfo.paths.boards;
+    for (var propt in s) {
+        console.log("Board: ", s[propt]);
+        waiting = true;
+        translateTextForBoard(propt, s[propt]);
+        let count = 0;
+        while (waiting) {
+            await timer(10);
+            count++;
+            if (count > 50)
+                break;
+        }
+    }
+    Notiflix.Loading.remove();
+    await timer(500);
+    currentZipBoard = "";
+
+    loadZipBoard(homeBoardName);
+    delete transJson;
+}
+
+async function translateTextForBoard(s2, s1) {
+    imagesLoaded = false;
+    await zipData.file(s1).async("string").then(function (data2) {
+        //        //        console.log(data2);
+        tmpBoard = JSON.parse(data2);
+        for (i = 0; i < tmpBoard.buttons.length; i++) {
+            if (tmpBoard.buttons[i].hasOwnProperty('label')) {
+                //                console.log(tmpBoard.buttons[i].label);
+                if (tmpBoard.buttons[i].label == 'Top Page') { // special case for communikate12.obz
+                    if (!tmpBoard.buttons[i].hasOwnProperty('load_board'))
+                        tmpBoard.buttons[i].load_board = {
+                            path: "12.obf"
+                        }
+                }
+                let tmp = "";
+                try {
+                    tmp = transJson[tmpBoard.buttons[i].label.toLowerCase()];
+                } catch (e) {}
+                if (tmp != undefined) {
+                    tmpBoard.buttons[i].label = tmp;
+                    //                    console.log(tmpBoard.buttons[i].label);
+                }
+            }
+        }
+        let text = JSON.stringify(tmpBoard, null, ' ');
+        zip.file(s1, text);
+        waiting = false;
+    }).catch(function (err) {
+        console.error("Failed to open file:", err);
+    })
+    waiting = false;
 }
 
 async function setSymbolInfo(s2, s1) {
@@ -464,7 +610,7 @@ async function getImages() {
         else if (im.hasOwnProperty('url')) {
             if (myBoard.images[counter2].url != null) {
                 getBase64FromImageUrl(myBoard.images[counter2].url);
-                Notiflix.Loading.change('Loading: ' + myBoard.images[counter2].url.replace(/^.*[\\\/]/, ''));
+                Notiflix.Loading.change(strLoading + ': ' + myBoard.images[counter2].url.replace(/^.*[\\\/]/, ''));
                 await timer(100);
             }
         } else
@@ -496,7 +642,7 @@ function getBase64FromImageUrl(url) {
 }
 
 async function embedImages() {
-    Notiflix.Loading.dots('Loading...');
+    Notiflix.Loading.dots(strLoading + '...');
     var s = manifestInfo.paths.boards;
     for (var propt in s) {
         console.log("Name: ", s[propt])

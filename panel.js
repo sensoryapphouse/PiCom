@@ -39,15 +39,18 @@ var lastTab = 1;
 var theboards = [];
 
 function showTabs(i) {
-    if (buttonsChanged) {
-        closeEdit();
-        communicatorChanged = true;
-        buttonsChanged = false;
-    }
-    if (manifestChanged) {
-        var text = JSON.stringify(manifestInfo, null, ' ')
-        zip.file("manifest.json", text);
-    }
+    try {
+        if (buttonsChanged) {
+            closeEdit();
+            communicatorChanged = true;
+            buttonsChanged = false;
+        }
+        if (manifestChanged) {
+            manifestChanged = false;
+            var text = JSON.stringify(manifestInfo, null, ' ')
+            zip.file("manifest.json", text);
+        }
+    } catch (e) {}
     if (i >= 1) {
         if (startSplash.hidden)
             settingsSplash.hidden == true;
@@ -66,7 +69,7 @@ function showTabs(i) {
             gui.hide();
             gui2.hide();
         }
-        setTimeout(hideSettings, 500);
+        setTimeout(hideSettings, 200);
 
         function hideSettings() {
             doSettingsSplash();
@@ -100,11 +103,11 @@ function showTabs(i) {
             gui.hide();
             gui2.hide();
             buttonPanel.hidden = false;
-            settingsButton.style.zIndex = "1800";
+            settingsButton.style.zIndex = "1801";
             settingsButton.style.backgroundColor = "rgb(200, 200, 200)";
-            editButton.style.zIndex = "1801";
+            editButton.style.zIndex = "1802";
             editButton.style.backgroundColor = "rgb(240, 240, 240)";
-            boardButton.style.zIndex = "1800";
+            boardButton.style.zIndex = "1801";
             boardButton.style.backgroundColor = "rgb(200, 200, 200)";
             break;
         case 3: //board
@@ -121,11 +124,11 @@ function showTabs(i) {
             buttonPanel.hidden = true;
             gui.hide();
             gui2.show();
-            settingsButton.style.zIndex = "1800";
+            settingsButton.style.zIndex = "1801";
             settingsButton.style.backgroundColor = "rgb(200, 200, 200)";
-            editButton.style.zIndex = "1801";
+            editButton.style.zIndex = "1802";
             editButton.style.backgroundColor = "rgb(200, 200, 200)";
-            boardButton.style.zIndex = "1802";
+            boardButton.style.zIndex = "1803";
             boardButton.style.backgroundColor = "rgb(240, 240, 240)";
 
             if (boardDiskFormat != 2)
@@ -137,7 +140,7 @@ function showTabs(i) {
                 changedBoard.__gui.__controllers[1].remove();
                 changedBoard.__gui.__controllers[0].remove();
             } catch (e) {}
-            changedBoard = currentBoard.add(params2, 'theBoardName', theboards).name("Change Board").onChange(function () {
+            changedBoard = currentBoard.add(params2, 'theBoardName', theboards).name(strChangeBoard).onChange(function () {
                 loadZipBoard(params2.theBoardName);
             });
             rowsGui = currentBoard.add(params2, 'rows', 1, 20, 1).name(strRows);
@@ -150,20 +153,23 @@ function showTabs(i) {
 }
 
 function closeEdit() {
-    if (buttonsChanged)
-        communicatorChanged = true;
-    if (manifestChanged) {
-        var text = JSON.stringify(manifestInfo, null, ' ')
-        zip.file("manifest.json", text);
-    }
-    if (!communicatorChanged)
-        return;
-    if (boardDiskFormat == 2) {
-        var text = JSON.stringify(myBoard, null, ' ');
-        zip.file(currentBoardName, text);
-    }
-    buttonPanel.hidden = true;
-    stopRecording();
+    try {
+        if (buttonsChanged)
+            communicatorChanged = true;
+        if (manifestChanged) {
+            manifestChanged = false;
+            var text = JSON.stringify(manifestInfo, null, ' ')
+            zip.file("manifest.json", text);
+        }
+        buttonPanel.hidden = true;
+        stopRecording();
+        if (!communicatorChanged)
+            return;
+        if (boardDiskFormat == 2) {
+            var text = JSON.stringify(myBoard, null, ' ');
+            zip.file(currentBoardName, text);
+        }
+    } catch (e) {}
 }
 
 function removeOptions(obj) {
@@ -447,9 +453,7 @@ function setUpPanel() {
     txtText.style.border = "inset";
     txtText.value = "";
     txtText.oninput = function (e) {
-        if (btnIndex == -1) {
-
-        }
+        if (btnIndex == -1) {}
         myBoard.buttons[btnIndex].label = txtText.value;
         buttonsChanged = true;
     }
@@ -515,7 +519,7 @@ function setUpPanel() {
             setTimeout(function () {
                 var im = imgs[tmpId].canvas.toDataURL();
                 imgCurrentImg.src = im; //'url(' + im + ')';
-            }, 50);
+            }, 250);
 
             delete myBoard.images[tmpId].data;
             //                imgs[tmpId] = loadImage(myBoard.images[tmpId].path);
@@ -1258,8 +1262,9 @@ function setUpPanel() {
     document.addEventListener('dragleave', onDragLeave, false);
     document.addEventListener('drop', onDrop, false);
 
-    MarcTooltips.add([leftArrow, rightArrow, upArrow, downArrow], strArrows, {
-        position: 'up',
+    MarcTooltips.add([leftArrow, rightArrow, upArrow, downArrow], strArrowKeys, {
+        position: 'left',
+        align: 'left',
         className: 'green'
     });
     //        MarcTooltips.add(closeButton, 'Close editor', {
@@ -1312,12 +1317,12 @@ function setUpPanel() {
 
     MarcTooltips.add(btnDeleteSnd, strDeleteSound, {
         position: 'bottom',
-        align: 'left',
+        align: 'right',
         className: 'green'
     });
     MarcTooltips.add(btnLoadSnd, strLoadSound, {
         position: 'bottom',
-        align: 'left',
+        align: 'right',
         className: 'green'
     });
     MarcTooltips.add(btnStopRec, strStopRecording, {
@@ -1337,17 +1342,17 @@ function setUpPanel() {
     });
 
     MarcTooltips.add(txtText, strTextLabel, {
-        position: 'right',
+        position: 'bottom',
         align: 'right',
         className: 'green'
     });
     MarcTooltips.add(txtVocal, strVolcaliseTooltip, {
-        position: 'right',
+        position: 'bottom',
         align: 'right',
         className: 'green'
     });
     MarcTooltips.add(txtLink, strLinkToTooltip, {
-        position: 'right',
+        position: 'bottom',
         align: 'right',
         className: 'green'
     });
@@ -1379,11 +1384,11 @@ function setUpPanel() {
     });
     MarcTooltips.add(speakChk, strSpeakTooltip, {
         position: 'bottom',
-        align: 'left',
+        align: 'right',
         className: 'green'
     });
 
-    MarcTooltips.add(btnSearch, "Search for image", {
+    MarcTooltips.add(btnSearch, strSearchForImage, {
         position: 'bottom',
         align: 'right',
         className: 'green'

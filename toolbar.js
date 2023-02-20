@@ -12,6 +12,7 @@ var backspace;
 var clearDisplay;
 var backgroundButton;
 var highlightButton;
+var speakBtn;
 
 function goHome() {
     //    return;
@@ -33,8 +34,13 @@ function doBackspace() {
     if (buttonCount > 0) {
         buttonCount--;
         ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(buttonCount * 100, 0, 100, 150);
-        btnsLabels[buttonCount].textContent = "";
+        if (rightToLeft) {
+            ctx.fillRect((9 - buttonCount) * 100, 0, 100, 150);
+            btnsLabels[9 - buttonCount].textContent = "";
+        } else {
+            ctx.fillRect(buttonCount * 100, 0, 100, 150);
+            btnsLabels[buttonCount].textContent = "";
+        }
     }
 }
 
@@ -309,7 +315,7 @@ function setUpToolbar() {
             e.preventDefault();
             if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
-                    doClick(0);
+                    doClick(1);
                 else
                     tmrAccept = setTimeout(function () {
                         doClick(1);
@@ -356,6 +362,7 @@ function setUpToolbar() {
     }
 
     rightButton.onmouseleave = function (e) {
+        e.stopPropagation();
         e.preventDefault();
         mouseHeldDown = false;
         doingLeft = true;
@@ -374,10 +381,10 @@ function setUpToolbar() {
         if (params.inputMethod == "Switches") {
             if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
-                    doClick(0);
+                    doClick(1);
                 else
                     tmrAccept = setTimeout(function () {
-                        doClick(0);
+                        doClick(1);
                     }, params.acceptanceDelay * 1000);
             }
         } else { // touchpad
@@ -415,7 +422,7 @@ function setUpToolbar() {
         console.log("Button touch ended");
         if (params.inputMethod == "Switches") {
             if (switchInput == strRelease)
-                doClick(0);
+                doClick(1);
         } else {
             firstTouch = false;
             tpdSleep = false;
@@ -427,7 +434,7 @@ function setUpToolbar() {
     }
 
     /*
-    if (params.boardStyle == 'ToolbarTop') {
+    if (params.boardStyle == strToolbarTop) {
         if (smallPortrait) {
             xIndex = floor(map(event.pageX, 0, layoutViewport.offsetWidth, 0, rows));
             yIndex = floor(map(event.pageY, offsetForBoard, layoutViewport.offsetHeight, 0, columns));
@@ -450,7 +457,7 @@ function setUpToolbar() {
             console.log("touchpad: ", e.x, e.y)
             if (params.touchpadMode == "Absolute") {
                 if (doingLeft) {
-                    if (params.boardStyle == 'ToolbarBottom') {
+                    if (params.boardStyle == strToolbarBottom) {
                         if (smallPortrait) {
                             //                            currentY = floor(map(e.y, 0, hWindow, 0, columns));
                             currentY = (columns + 1) - 1 - floor((columns + 1) * (layoutViewport.offsetHeight - e.y) / leftButton.offsetHeight);
@@ -494,7 +501,7 @@ function setUpToolbar() {
                         }
                     }
                 } else {
-                    if (params.boardStyle == 'ToolbarBottom') {
+                    if (params.boardStyle == strToolbarBottom) {
                         if (smallPortrait) {
                             //                            currentY = floor(map(e.y, 0, hWindow, 0, columns));
                             currentY = (columns + 1) - 1 - floor((columns + 1) * (layoutViewport.offsetHeight - e.y) / leftButton.offsetHeight);
@@ -550,7 +557,7 @@ function setUpToolbar() {
 
                 refreshBoard = 1;
             } else { // joystick
-                if (params.boardStyle == 'ToolbarBottom') {
+                if (params.boardStyle == strToolbarBottom) {
                     if (doingLeft)
                         tmpX = floor(9 * (e.x - leftButton.offsetLeft) / leftButton.offsetWidth);
                     else
@@ -791,7 +798,7 @@ function setUpToolbar() {
     //    ctx.fillText("TEST", 10, 10);
     //    ctx.restore();
 
-    var speakBtn = document.createElement("button");
+    speakBtn = document.createElement("button");
     speakBtn.style.position = "absolute";
     speakBtn.style.top = "1vh";
     speakBtn.style.left = "68vw";
