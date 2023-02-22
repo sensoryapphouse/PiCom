@@ -390,7 +390,7 @@ function getLang(langTxt) {
     if (lang.hasOwnProperty('OneSwitchOverscan'))
         strOneSwitchOverscan = lang.OneSwitchOverscan;
     if (lang.hasOwnProperty('OneSwitchRowColumn'))
-        strOneSwitchRowColumnn = lang.OneSwitchRowColumn;
+        strOneSwitchRowColumn = lang.OneSwitchRowColumn;
     if (lang.hasOwnProperty('ToolbarBottom'))
         strToolbarBottom = lang.ToolbarBottom;
     if (lang.hasOwnProperty('ToolbarTop'))
@@ -425,19 +425,20 @@ function getLang(langTxt) {
     params.selectWith = defaultParams.selectWith = strRelease;
     defaultParams.selectWith = strRelease;
     defaultParams.selectWithSwitchScan = strPress;
-    switchInput = strPress;
-
     defaultParams.boardStyle = strToolbarBottom;
     defaultParams.toolbarSize = strMedium;
     defaultParams.textPos = strTop;
     defaultParams.buttonSpacing = strMedium;
-    //    defaultParams.inputMethod = 'Touch/Mouse';
     defaultParams.selectWith = strRelease;
     defaultParams.selectWithSwitchScan = strRelease;
     defaultParams.touchpadMode = strAbsolute;
-    //    defaultParams.mouseWheel = "Row/Column";
-    //    defaultParams.switchStyle = 'Two switch step';
-    //
+    defaultParams.inputMethod = strTouchMouse;
+    defaultParams.selectWithSwitchScan = strPress;
+    defaultParams.mouseWheel = strRowColumn;
+    defaultParams.switchStyle = strTwoSwitchStep;
+    defaultParams.toolbarSize = strMedium;
+    defaultParams.touchpadMode = strAbsolute;
+
     params = defaultParams;
     loadParams();
 }

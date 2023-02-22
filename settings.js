@@ -542,7 +542,7 @@ function setUpGUI() {
         highLightingRow = false;
         highlightRow = -1;
         switch (params.inputMethod) {
-            case 'Touch/Mouse':
+            case strTouchMouse:
                 enableZoom.__li.style.display = "";
                 touchpadMode.__li.style.display = "none";
                 touchpadSize.__li.style.display = "none";
@@ -554,7 +554,7 @@ function setUpGUI() {
                 setupToolbarDefault();
                 setSelectOptions();
                 break;
-            case 'Touchpad':
+            case strTouchpad:
                 speed.__min = 0;
                 if (params.speed == .2)
                     speed.setValue(0);
@@ -570,7 +570,7 @@ function setUpGUI() {
                 setSelectOptions();
                 touchpadOptions();
                 break;
-            case 'Analog Joystick':
+            case strAnalogJoystick:
                 speed.__min = 0;
                 if (params.speed == .2)
                     speed.setValue(0);
@@ -585,7 +585,7 @@ function setUpGUI() {
                 setupToolbarDefault();
                 setSelectOptions();
                 break;
-            case 'MouseWheel':
+            case strMouseWheel:
                 enableZoom.__li.style.display = "none";
                 touchpadMode.__li.style.display = "none";
                 touchpadSize.__li.style.display = "none";
@@ -598,7 +598,7 @@ function setUpGUI() {
                 setSelectOptions();
                 mouseWheelChange();
                 break;
-            case 'Cursor Keys/Dpad':
+            case strCursorKeysDpad:
                 enableZoom.__li.style.display = "none";
                 touchpadMode.__li.style.display = "none";
                 touchpadSize.__li.style.display = "none";
@@ -611,7 +611,7 @@ function setUpGUI() {
                 setSelectSwitchOptions();
                 highlightRow = -1;
                 break;
-            case 'Switches':
+            case strSwitches:
                 speed.__min = .2;
                 if (params.speed < .2) // don't allow speed 0 for switches
                     speed.setValue(0.2);
@@ -676,11 +676,11 @@ function setUpGUI() {
 
     var inputOptions = gui.addFolder(strInputOptions);
     if (webViewIOS) //webViewIOS
-        inputMethod = inputOptions.add(params, 'inputMethod', ['Touch/Mouse', 'Touchpad', 'Analog Joystick', 'Cursor Keys/Dpad', 'MouseWheel', 'Switches'
+        inputMethod = inputOptions.add(params, 'inputMethod', [strTouchMouse, strTouchpad, strAnalogJoystick, strCursorKeysDpad, strMouseWheel, strSwitches
                                    // , 'Face', 'Eyes'
                                    ]).name(strInputMethod).onChange(setOptions);
     else
-        inputMethod = inputOptions.add(params, 'inputMethod', ['Touch/Mouse', 'Touchpad', 'Analog Joystick', 'Cursor Keys/Dpad', 'MouseWheel', 'Switches', strFace, strFaceExpressions
+        inputMethod = inputOptions.add(params, 'inputMethod', [strTouchMouse, strTouchpad, strAnalogJoystick, strCursorKeysDpad, strMouseWheel, strSwitches, strFace, strFaceExpressions
                                    // , 'Face', 'Eyes'
                                    ]).name(strInputMethod).onChange(setOptions);
 
@@ -729,16 +729,16 @@ function setUpGUI() {
         }
     }
 
-    var mouseWheel = inputOptions.add(params, 'mouseWheel', ['Row/Column', 'Step']).name(strWheelScan).onChange(mouseWheelChange);
+    var mouseWheel = inputOptions.add(params, 'mouseWheel', [strRowColumn, strScan]).name(strWheelScan).onChange(mouseWheelChange);
 
     function mouseWheelChange() {
         switch (params.mouseWheel) {
-            case 'Row/Column':
+            case strRowColumn:
                 highLightingRow = true;
                 highlightRow = 0;
                 currentX = -1;
                 break;
-            case 'Step':
+            case strScan:
                 highLightingRow = false;
                 highlightRow = -1;
                 currentX = 0;
@@ -748,11 +748,11 @@ function setUpGUI() {
         refreshBoard++;
     }
 
-    var switchStyle = inputOptions.add(params, 'switchStyle', ['Two switch step', 'Two switch row/column', 'One switch step', 'One switch row/column', 'One switch overscan']).name(strSwitchStyle).onChange(switchStyleOptions);
+    var switchStyle = inputOptions.add(params, 'switchStyle', [strTwoSwitchStep, strRowColumn, strOneSwitchStep, strOneSwitchRowColumn, strOneSwitchOverscan]).name(strSwitchStyle).onChange(switchStyleOptions);
 
     function switchStyleOptions() {
         switchInput = params.selectWithSwitchScan;
-        if (params.switchStyle == 'Two switch step' || params.switchStyle == 'Two switch row/column')
+        if (params.switchStyle == strTwoSwitchStep || params.switchStyle == strTwoSwitchRowColumn)
             speed.__li.style.display = "none";
         else
             speed.__li.style.display = "";
@@ -784,19 +784,19 @@ function setUpGUI() {
             case strPress:
                 acceptanceDelay.__li.style.display = "";
                 acceptanceDelayHover.__li.style.display = "none";
-                if (params.inputMethod == 'Cursor Keys/Dpad')
+                if (params.inputMethod == strCursorKeysDpad)
                     speed.__li.style.display = "none";
                 break;
             case strRelease:
                 acceptanceDelay.__li.style.display = "none";
                 acceptanceDelayHover.__li.style.display = "none";
-                if (params.inputMethod == 'Cursor Keys/Dpad')
+                if (params.inputMethod == strCursorKeysDpad)
                     speed.__li.style.display = "none";
                 break;
             case strHover:
                 acceptanceDelay.__li.style.display = "none";
                 acceptanceDelayHover.__li.style.display = "";
-                if (params.inputMethod == 'Cursor Keys/Dpad')
+                if (params.inputMethod == strCursorKeysDpad)
                     speed.__li.style.display = "none";
                 break;
         }
@@ -808,30 +808,30 @@ function setUpGUI() {
         hoverCount = 0;
         clearTimeout(tmrRepeat);
         switch (params.switchStyle) {
-            case 'Two switch step':
+            case strTwoSwitchStep:
                 highLightingRow = false;
                 highlightRow = -1;
                 currentX = 0;
                 currentY = 0;
                 break;
-            case 'Two switch row/column':
+            case strTwoSwitchRowColumn:
                 highLightingRow = true;
                 highlightRow = 0;
                 currentX = -1;
                 break;
-            case 'One switch step':
+            case strOneSwitchStep:
                 highLightingRow = false;
                 highlightRow = -1;
                 currentX = 0;
                 currentY = 0;
                 break;
-            case 'One switch row/column':
+            case strOneSwitchRowColumn:
                 highLightingRow = true;
                 highlightRow = 0;
                 currentX = -1;
                 startGoingDown()
                 break;
-            case 'One switch overscan':
+            case strOneSwitchOverscan:
                 highLightingRow = false;
                 highlightRow = -1;
                 currentX = 0;

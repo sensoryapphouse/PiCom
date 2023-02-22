@@ -166,7 +166,7 @@ function setUpToolbar() {
         e.preventDefault();
         if (!closeButton.hidden)
             return;
-        if (params.inputMethod == "Switches") {
+        if (params.inputMethod == strSwitches) {
             if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     doClick(0);
@@ -190,7 +190,7 @@ function setUpToolbar() {
         e.preventDefault();
         if (!closeButton.hidden)
             return;
-        if (params.inputMethod == "Switches") {
+        if (params.inputMethod == strSwitches) {
             if (switchInput == strRelease)
                 doClick(0);
         } else {
@@ -208,7 +208,7 @@ function setUpToolbar() {
         e.preventDefault();
         if (!closeButton.hidden)
             return;
-        if (params.inputMethod == "Switches") {} else {
+        if (params.inputMethod == strSwitches) {} else {
             doingLeft = true;
             if (mouseHeldDown || params.touchpadMode == "Absolute")
                 tpdEvent(e, 2);
@@ -231,7 +231,7 @@ function setUpToolbar() {
         tchX = e.x = e.touches[0].pageX;
         tchY = e.y = e.touches[0].pageY;
         console.log("Button Touch started");
-        if (params.inputMethod == "Switches") {
+        if (params.inputMethod == strSwitches) {
             if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     doClick(0);
@@ -258,9 +258,9 @@ function setUpToolbar() {
         //    event.preventDefault();
         tchX = e.x = event.touches[0].pageX;
         tchY = e.y = event.touches[0].pageY;
-        if (params.inputMethod == "Switches") {} else {
+        if (params.inputMethod == strSwitches) {} else {
             doingLeft = true;
-            if (mouseHeldDown || params.touchpadMode == "Absolute")
+            if (mouseHeldDown || params.touchpadMode == strSwitches)
                 tpdEvent(e, 2);
         }
     }
@@ -273,7 +273,7 @@ function setUpToolbar() {
         e.x = tchX;
         e.y = tchY;
         console.log("Button touch ended");
-        if (params.inputMethod == "Switches") {
+        if (params.inputMethod == strSwitches) {
             if (switchInput == strRelease)
                 doClick(0);
         } else {
@@ -310,7 +310,7 @@ function setUpToolbar() {
     rightButton.onmousedown = function (e) {
         e.stopPropagation();
         e.preventDefault();
-        if (params.inputMethod == "Switches") {
+        if (params.inputMethod == strSwitches) {
             e.stopPropagation();
             e.preventDefault();
             if (switchInput == strPress) {
@@ -334,7 +334,7 @@ function setUpToolbar() {
     rightButton.onmouseup = function (e) {
         e.stopPropagation();
         e.preventDefault();
-        if (params.inputMethod == "Switches") {
+        if (params.inputMethod == strSwitches) {
             e.stopPropagation();
             e.preventDefault();
             if (switchInput == strRelease)
@@ -354,7 +354,7 @@ function setUpToolbar() {
         e.preventDefault();
         if (!buttonPanel.hidden)
             return;
-        if (params.inputMethod == "Switches") {} else {
+        if (params.inputMethod == strSwitches) {} else {
             doingLeft = false;
             if (mouseHeldDown || params.touchpadMode == "Absolute")
                 tpdEvent(e, 2);
@@ -378,7 +378,7 @@ function setUpToolbar() {
         tchX = e.x = e.touches[0].pageX;
         tchY = e.y = e.touches[0].pageY;
         console.log("Button Touch started");
-        if (params.inputMethod == "Switches") {
+        if (params.inputMethod == strSwitches) {
             if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
                     doClick(1);
@@ -405,7 +405,7 @@ function setUpToolbar() {
         //    event.preventDefault();
         tchX = e.x = event.touches[0].pageX;
         tchY = e.y = event.touches[0].pageY;
-        if (params.inputMethod == "Switches") {} else {
+        if (params.inputMethod == strSwitches) {} else {
             doingLeft = false;
             if (mouseHeldDown || params.touchpadMode == "Absolute")
                 tpdEvent(e, 2);
@@ -420,7 +420,7 @@ function setUpToolbar() {
         e.x = tchX;
         e.y = tchY;
         console.log("Button touch ended");
-        if (params.inputMethod == "Switches") {
+        if (params.inputMethod == strSwitches) {
             if (switchInput == strRelease)
                 doClick(1);
         } else {
@@ -453,7 +453,7 @@ function setUpToolbar() {
     */
 
     function tpdEvent(e, state) {
-        if (params.inputMethod == "Touchpad") {
+        if (params.inputMethod == strTouchpad) {
             console.log("touchpad: ", e.x, e.y)
             if (params.touchpadMode == "Absolute") {
                 if (doingLeft) {

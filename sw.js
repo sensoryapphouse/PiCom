@@ -1,4 +1,4 @@
-var cacheName = 'PiCom';
+const version = 'PiComv977';
 var filesToCache = [
   './',
   './index.html',
@@ -38,6 +38,7 @@ var filesToCache = [
     './images/splash.jpg',
     './images/PiComPortrait.jpg',
     './images/start.png',
+    './images/close.png',
     './images/settings.png',
     './images/on.svg',
     './images/off.svg',
@@ -47,6 +48,7 @@ var filesToCache = [
     './images/info.svg',
     './images/backspace.png',
     './images/clear.png',
+    './images/panel.png',
     './images/speak.png',
     './images/play.png',
     './images/trash.png',
@@ -83,21 +85,28 @@ var filesToCache = [
     './libraries/jeelizFaceExpressions.js',
     './libraries/jeelizFaceExpressionsNNC.json'
 ];
-
 /* Start the service worker and cache all of the app's content */
-self.addEventListener('install', function (e) {
-    e.waitUntil(
-        caches.open(cacheName).then(function (cache) {
-            return cache.addAll(filesToCache);
-        })
-    );
+self.addEventListener('install', res => {
+  caches.open(version).then(cache => {
+    cache.addAll(filesToCache);
+  });
+  console.log('[sw] Installed successfully :');
+  self.skipWaiting();
 });
 
 /* Serve cached content when offline */
-self.addEventListener('fetch', function (e) {
-    e.respondWith(
-        caches.match(e.request).then(function (response) {
-            return response || fetch(e.request);
-        })
-    );
-});
+self.addEventListener('fetch', event => event.respondWith(
+  caches.open(version)
+    .then(cache => cache.match(event.request))
+    .then(response => response || fetch(event.request))
+));
+/*deleting old cache*/
+self.addEventListener('activate', event => {
+  caches.keys().then(function(cacheNames) {
+    cacheNames.forEach(function(cacheName) {
+      if (cacheName !== version) {
+        caches.delete(cacheName);
+      }
+    });
+  });
+})

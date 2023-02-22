@@ -108,11 +108,11 @@ function mousePressed(event) {
         //        event.preventDefault();
     } catch (e) {}
     switch (params.inputMethod) {
-        case 'Touch/Mouse':
-        case 'Touchpad':
-        case 'Analog Joystick':
-        case 'MouseWheel':
-        case 'Cursor Keys/Dpad':
+        case strTouchMouse:
+        case strTouchpad:
+        case strAnalogJoystick:
+        case strMouseWheel:
+        case strCursorKeysDpad:
         case strFace:
             if (switchInput == strPress) {
                 if (params.acceptanceDelay == 0)
@@ -140,17 +140,17 @@ function mouseReleased(event) {
     if (event.button == 2 || !settingsButton.hidden)
         return;
     switch (params.inputMethod) {
-        case 'Touch/Mouse':
-        case 'Touchpad':
-        case 'Analog Joystick':
-        case 'MouseWheel':
-        case 'Cursor Keys/Dpad':
+        case strTouchMouse:
+        case strTouchpad:
+        case strAnalogJoystick:
+        case strMouseWheel:
+        case strCursorKeysDpad:
         case strFace:
             if (switchInput == strRelease) {
                 mseEvent(event);
             }
             break;
-        case 'Switches':
+        case strSwitches:
             if (switchInput == strRelease) {
                 mseEvent(event);
             }
@@ -170,8 +170,8 @@ function mseEvent(event) {
         return;
     console.log(event.pageX);
 
-    if (params.inputMethod == "MouseWheel") {
-        if (params.mouseWheel == "Step")
+    if (params.inputMethod == strMouseWheel) {
+        if (params.mouseWheel == strScan)
             doClick(0);
         else { // row/column
             if (highLightingRow) {
@@ -237,19 +237,19 @@ function mouseMoved(event) {
     if (!closeButton.hidden)
         return;
     switch (params.inputMethod) {
-        case 'Touch/Mouse':
-        case 'Touchpad':
-        case 'Analog Joystick':
-        case 'MouseWheel':
-        case 'Cursor Keys/Dpad':
+        case strTouchMouse:
+        case strTouchpad:
+        case strAnalogJoystick:
+        case strMouseWheel:
+        case strCursorKeysDpad:
             break;
-        case 'Switches':
+        case strSwitches:
             if (switchInput == strHover) {
                 doClick(0);
             }
             break;
     }
-    if (params.inputMethod == 'MouseWheel')
+    if (params.inputMethod == strMouseWheel)
         return;
     if (guiVisible)
         return;
@@ -462,16 +462,16 @@ var doingFastOverscan = true;
 function doClick(button) {
     if (!buttonPanel.hidden)
         return;
-    if (params.inputMethod == "Switches") {
+    if (params.inputMethod == strSwitches) {
         clearTimeout(tmrRepeat);
         switch (params.switchStyle) {
-            case 'Two switch step':
+            case strTwoSwitchStep:
                 if (button == 0)
                     moveRightWrap();
                 else
                     justSelected(currentX, currentY);
                 break;
-            case 'Two switch row/column':
+            case strTwoSwitchRowColumn:
                 if (button == 0) {
                     if (highLightingRow) {
                         highlightRow++;
@@ -500,12 +500,12 @@ function doClick(button) {
                 }
                 refreshBoard++;
                 break;
-            case 'One switch step':
+            case strOneSwitchStep:
                 console.log("One switch step");
                 justSelected(currentX, currentY);
                 startGoingRight();
                 break;
-            case 'One switch row/column':
+            case strOneSwitchRowColumn:
                 if (highLightingRow) {
                     highLightingRow = false;
                     currentX = 0;
@@ -523,7 +523,7 @@ function doClick(button) {
                 refreshBoard++;
                 break;
 
-            case 'One switch overscan':
+            case strOneSwitchOverscan:
                 if (doingFastOverscan) {
                     doingFastOverscan = false;
                     startGoingLeft();
@@ -608,10 +608,10 @@ window.addEventListener('wheel', (e) => {
     if (busy)
         return;
     busy = true;
-    if (!params.allowZoom && params.inputMethod == 'Touch/Mouse') { // zoom and pan
+    if (!params.allowZoom && params.inputMethod == strTouchMouse) { // zoom and pan
         e.preventDefault();
-    } else if (params.inputMethod != 'Touch/Mouse') {
-        if (params.inputMethod == 'MouseWheel') {
+    } else if (params.inputMethod != strTouchMouse) {
+        if (params.inputMethod == strMouseWheel) {
             var movement = e.deltaY;
             console.log("MouseWheel", movement);
             if (switchInput == strHover) {
@@ -667,9 +667,9 @@ window.addEventListener('wheel', (e) => {
 
 window.addEventListener('touchmove', e => {
     if (e.touches.length > 1) {
-        if (!params.allowZoom && params.inputMethod == 'Touch/Mouse') { // zoom and pan
+        if (!params.allowZoom && params.inputMethod == strTouchMouse) { // zoom and pan
             e.preventDefault();
-        } else if (params.inputMethod != 'Touch/Mouse')
+        } else if (params.inputMethod != strTouchMouse)
             e.preventDefault();
     }
 }, {

@@ -344,7 +344,7 @@ function setUpGUI2() {
     currentBoard.open();
     addBoard.open();
     newCom.open();
-//    globalChange.open();
+    //    globalChange.open();
     gui2.hide();
     boardUtils();
 }

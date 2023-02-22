@@ -467,6 +467,21 @@ function setUpPanel() {
         btnSearch.style.width = "9vw";
         btnSearch.style.left = "86.5vw";
     }
+
+    function getGlobalSymbols(s) { // do global symbols search - not yet
+        //        return;
+        fetch('https://globalsymbols.com/api/v1/labels/search?query=' + s + '&language=eng&language_iso_format=639-3&limit=90', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                // console.log(data); // JSON data parsed by `data.json()` call
+                //                btnSearch.style.backgroundImage = "url(" + data[1].picto.image_url + ")";
+                imgCurrentImg.style.backgroundImage = "url(" + data[0].picto.image_url + ")";
+            });
+    }
     btnSearch.style.top = "50.5vh";
     btnSearch.style.border = "none";
     btnSearch.style.backgroundColor = "transparent";
@@ -474,6 +489,7 @@ function setUpPanel() {
     btnSearch.style.backgroundImage = "url('images/LoadPic.png')";
     btnSearch.setAttribute("type", "button");
     btnSearch.onclick = function (e) {
+        //        getGlobalSymbols(txtText.value.toLowerCase()) // test loading from globalsymbols
         let tmpS = 'SAHsymbols/' + txtText.value.toLowerCase() + '.svg';
         let s1 = txtText.value.toLowerCase() + '.svg';
         let tf = symbolZip.file(s1);
