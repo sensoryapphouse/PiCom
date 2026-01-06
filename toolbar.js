@@ -15,6 +15,7 @@ var highlightButton;
 var speakBtn;
 
 function goHome() {
+    spelling = false;
     //    return;
     //    var scale = 'scale(1)';
     //    document.body.style.webkitTransform = scale; // Chrome, Opera, Safari
@@ -29,6 +30,9 @@ function goHome() {
 }
 
 function doBackspace() {
+    spelling = false;
+    textToSpeak = textToSpeak.replaceAll(' |  | ', ' | ');
+    textToSpeak = textToSpeak.replaceAll('  ', ' ');
     if (textToSpeak.length > 0)
         textToSpeak = textToSpeak.substring(0, textToSpeak.lastIndexOf(' |'));
     if (buttonCount > 0) {
@@ -45,6 +49,7 @@ function doBackspace() {
 }
 
 function doClear() {
+    spelling = false;
     ctx.fillStyle = "#FFFFFF";
     textToSpeak = "";
     for (j = 0; j < 10; j++) {
@@ -57,8 +62,8 @@ function doClear() {
 function doSpeak() {
     var txt = textToSpeak;
     txt = txt.replaceAll(' | ', ' ');
-    speech.cancel();
-    speech.speak(txt);
+    stopSpeech();
+    say(txt);
 }
 
 function setUpToolbar() {
@@ -478,7 +483,7 @@ function setUpToolbar() {
                                 removeToolbarHighlight();
                             }
                         }
-                    } else {
+                    } else { //not doing left
                         if (smallPortrait) {
                             //                            currentY = floor(map(e.y, 0, hWindow, 0, columns));
                             currentY = (columns) - 1 - floor((columns + 1) * (leftButton.offsetHeight - e.y) / leftButton.offsetHeight);
@@ -544,7 +549,6 @@ function setUpToolbar() {
                             }
                         }
                     }
-
 
                     console.log(currentX, currentY);
                 }

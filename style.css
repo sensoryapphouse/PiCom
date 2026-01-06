@@ -15,6 +15,7 @@ body {
     /*    align-items: flex-end;*/
     /* flex-start; flex-end; */
     background-color: black;
+    touch-action: manipulation;
 }
 
 
@@ -282,7 +283,7 @@ settings {
     background-repeat: no-repeat;
     background-size: 4vh 4vh;
     opacity: 0.95;
-    z-index: 2000;
+    z-index: 2500;
     -webkit-app-region: no-drag;
 }
 

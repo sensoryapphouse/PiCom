@@ -1,4 +1,4 @@
-var speech = new p5.Speech(); // new P5.Speech object
+
 var jsonString;
 var boardsJson;
 var boardNames = [];
@@ -64,7 +64,7 @@ var defaultParams = {
     voiceVolume: 1,
     backgroundImage: null,
     tooltips: true,
-    buttonEditor: false,
+    buttonEditor: true,
     chkHideSettings: true
 };
 var params = defaultParams;
@@ -100,7 +100,6 @@ function resetParams() {
 function loadParams() {
     try {
         console.log("Load Params");
-        //        throw "null";
         var s = window.localStorage.getItem("PiCom");
         if (s == null)
             throw "null";
@@ -110,7 +109,10 @@ function loadParams() {
         }
         boardsJson = loadJSON("boards/boards.json", boardsLoaded);
         console.log("LoadParams");
-        loadFileObj();
+          //test import on ios
+          setTimeout(function () {
+            loadFileObj();
+        s}, 200);
     } catch (e) {
         resetParams();
     };
@@ -469,21 +471,30 @@ var share = {
                     await shareFile(file2);
                     communicatorChanged = false;
                     saveFileObj(null);
-                    var readWriteMode = typeof IDBTransaction.READ_WRITE == "undefined" ? "readwrite" : IDBTransaction.READ_WRITE;
-                    var transaction = db.transaction(["PiComFileStore"], readWriteMode);
-                    var put = transaction.objectStore("PiComFileStore").put(content, 'blob');
-                    put.onerror = function (event) {
-                        console.log("Error csaving object in IndexedDB database");
-                    };
-                    nowLoad();
+//                    var readWriteMode = typeof IDBTransaction.READ_WRITE == "undefined" ? "readwrite" : IDBTransaction.READ_WRITE;
+//                    var transaction = db.transaction(["PiComFileStore"], readWriteMode);
+//                    var put = transaction.objectStore("PiComFileStore").put(content, 'blob');
+//                    put.onerror = function (event) {
+//                        console.log("Error csaving object in IndexedDB database");
+//                    };
+//                    nowLoad();
+                
+                    setTimeout(function () {
+                        var readWriteMode = typeof IDBTransaction.READ_WRITE == "undefined" ? "readwrite" : IDBTransaction.READ_WRITE;
+                        var transaction = db.transaction(["PiComFileStore"], readWriteMode);
+                        var put = transaction.objectStore("PiComFileStore").put(content, 'blob');
+                        put.onerror = function (event) {
+                            console.log("Error csaving object in IndexedDB database");
+                        };
+                        idbKeyval.set("type", 'obz');
+                        //nowLoad();
+                    }, 0);
                 });
         }
 
         showTabs(0);
     }
 };
-
-
 
 async function shareFile(file) {
     const files = [];
@@ -494,8 +505,8 @@ async function shareFile(file) {
         try {
             await navigator.share({
                 files,
-                title: 'PiCom',
-                text: strShareCommunicator
+             //   title: 'PiCom',
+             //   text: strShareCommunicator
             })
             //            output.textContent = 'Shared!'
         } catch (error) {
@@ -543,7 +554,7 @@ function setUpGUI() {
         highlightRow = -1;
         switch (params.inputMethod) {
             case strTouchMouse:
-                enableZoom.__li.style.display = "";
+                enableZoom.__li.style.display = "none"; // hide for now
                 touchpadMode.__li.style.display = "none";
                 touchpadSize.__li.style.display = "none";
                 switchStyle.__li.style.display = "none";
@@ -861,7 +872,6 @@ function setUpGUI() {
     }
     var acceptanceDelay = inputOptions.add(params, 'acceptanceDelay', 0., 2.0, .1).name(strAcceptTimer);
     var acceptanceDelayHover = inputOptions.add(params, 'acceptanceDelayHover', 0.3, 3.0, .1).name(strHoverTimer);
-
     var visual = gui.addFolder(strVisual);
     //    if (smallPortrait) {
     //        visual.add(params, 'boardStyle', ['Fullscreen', 'ToolbarTop']).name(strToolbar).onChange(toolbarPos);
@@ -911,7 +921,6 @@ function setUpGUI() {
                 bcol.__li.style = "opacity: 1.0";
             refreshBoard = 1;
         });
-
     var bcol = visual.addColor(params, 'backgroundColour').name(strBackground).onChange(
         function () {
             backgroundButton.style.backgroundColor = params.backgroundColour;
@@ -920,44 +929,81 @@ function setUpGUI() {
             clearDisplay.style.backgroundColor = params.backgroundColour;
             refreshBoard = 1;
         });
-
     var highlightColour = visual.addColor(params, 'highlightColour').name(strHighlight).onChange(
         function () {
             refreshBoard = 1;
         });
-
     changeVoice(params.currentVoice);
     var speechSettings = gui.addFolder(strSpeech);
 
-    const voices = speechSynthesis.getVoices()
     var speechList = [];
-    for (i = 0; i < voices.length; i++)
-        speechList[i] = voices[i].name + ": " + voices[i].lang;
-
+    if (doingSAPI || webViewIOS) {
+        speechList = SAPInames.split("||");
+        counter = speechList.length;
+    }
+    else {
+        const voices = speechSynthesis.getVoices();
+        for (i = 0; i < voices.length; i++)
+            speechList[i] = voices[i].name + ": " + voices[i].lang;
+    }
     speechSettings.add(params, 'currentVoice', speechList).name(strVoice).onChange(
         function () {
+            stopSpeech();
             changeVoice(params.currentVoice);
-            speech.cancel();
-            speech.speak("Hello");
             //            speechSettings.close();
         });
     var pitch = speechSettings.add(params, 'voicePitch', 0.1, 2.0, .1).name(strPitch).onChange(
         function () {
-            speech.cancel();
-            speech.setPitch(params.voicePitch);
-            speech.speak("Hello");
-        });;
+            if (webViewIOS) {
+                var message = "Pitch:" +  (0.5 + params.voicePitch*.5);
+                window.webkit.messageHandlers.PiCom.postMessage({
+                        "m": message
+                    });
+ //
+            }
+            else {
+                stopSpeech()
+                speech.setPitch(params.voicePitch);
+                speech.speak("Hello");
+            }
+        });
+    if (doingSAPI)
+        pitch.__li.style.display = 'none';
     var rate = speechSettings.add(params, 'voiceRate', 0.1, 2.0, .1).name(strRate).onChange(
-        function () {
-            speech.cancel();
-            speech.setRate(params.voiceRate);
-            speech.speak("Hello");
-        });;
+            function () {
+                stopSpeech();
+                if (doingSAPI) {
+                    window.chrome.webview.postMessage("Speed:" + Math.round(params.voiceRate*5));
+                    say("Hello");
+                }
+                else if (webViewIOS) {
+                    var message = "Speed:" + params.voiceRate/2.0;
+                    window.webkit.messageHandlers.PiCom.postMessage({
+                            "m": message
+                        });
+                }
+
+                else {
+                    speech.setRate(params.voiceRate);
+                    speech.speak("Hello");
+                }
+            });;
     var volume = speechSettings.add(params, 'voiceVolume', 0.0, 1.0, .1).name(strVolume).onChange(
         function () {
-            speech.cancel();
-            speech.setVolume(params.voiceVolume);
-            speech.speak("Hello");
+                if (doingSAPI) {
+                    window.chrome.webview.postMessage("Volume:" + Math.round(params.voiceVolume*10));
+                    say("Hello");
+                }
+                else if (webViewIOS) {
+                    var message = "Volume:" + params.voiceVolume;
+                    window.webkit.messageHandlers.PiCom.postMessage({
+                            "m": message
+                        });
+                }
+                else {
+                   speech.setVolume(params.voiceVolume);
+                   speech.speak("Hello");
+                }
         });
 
     speechSettings.add(params, 'vocaliseEachButton').name(strSpeakOnSelect);
@@ -1009,7 +1055,31 @@ function setUpGUI() {
 
 function changeVoice(name) {
     var s = name;
-    s = s.substr(0, s.indexOf(':'));
-    // params.currentVoice.substr(params.currentVoice.indexOf(":'));
-    speech.setVoice(s);
+    if (doingSAPI) {
+        window.chrome.webview.postMessage("Voice:" + name);
+        window.chrome.webview.postMessage("Speed:" + Math.round(params.voiceRate*5));
+        window.chrome.webview.postMessage("Volume:" + Math.round(params.voiceVolume*10));
+    }
+    else if (webViewIOS) {
+        name = name.substring(0, name.indexOf(":"))
+        window.webkit.messageHandlers.PiCom.postMessage({
+                "m": "Voice:" + name
+            });
+        window.webkit.messageHandlers.PiCom.postMessage({
+                "m": "Pitch:" + (0.5 + params.voicePitch*.5)
+            });
+        window.webkit.messageHandlers.PiCom.postMessage({
+                "m": "Speed:" + params.voiceRate/2.0
+            });
+        window.webkit.messageHandlers.PiCom.postMessage({
+                "m": "Volume:" + params.voiceVolume
+            });
+    }
+
+    else {
+      var s = name;
+      s = s.substr(0, s.indexOf(':'));
+      // params.currentVoice.substr(params.currentVoice.indexOf(":'));
+      speech.setVoice(s);
+    }
 }

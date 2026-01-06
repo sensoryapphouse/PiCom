@@ -5,6 +5,8 @@ var imgs = [];
 var btnOrder = [];
 var columns;
 
+var spelling = false;
+
 var rows;
 var stepx;
 var stepy;
@@ -63,6 +65,7 @@ var startSplash;
 var guideSplash;
 var helpSplash;
 var buttonPanel;
+var iconSelect;
 
 window.addEventListener('beforeunload', function (e) {
     if (communicatorChanged) {
@@ -77,6 +80,36 @@ function doSettingsSplash() {
         settingsSplash.hidden = params.chkHideSettings;
 }
 
+var buttons = new Array(20).fill().map(_ => new Array(20).fill(0));
+function makeButtons() {
+    for ( var i = 0; i < 20; i++ )
+        for ( var j = 0; j < 20; j++ )
+            {
+              //  buttons[i][j] = i*j;
+                buttons[i][j] = document.createElement('INPUT');
+                buttons[i][j].style.position = "absolute";
+                buttons[i][j].style.height = "5vh";
+                buttons[i][j].style.width = "5vw";
+                buttons[i][j].style.left = (i*5).toString() + "vw";
+//                if (smallPortrait) { // multiply left and width by 2.857
+//                    buttons[i][j].style.width = "5vw";
+//                    buttons[i][j].style.left = (i+5).toString() + "vh";
+//                }
+                buttons[i][j].style.top = (j*5).toString() +"vh";
+                buttons[i][j].style.border = "solid";
+                buttons[i][j].style.borderRadius = "0px";
+                buttons[i][j].style.opacity = ".25";
+//                buttons[i][j].style.backgroundSize = "100% 100%";
+//                buttons[i][j].style.backgroundImage = "url('images/trash.png')";
+                buttons[i][j].style.backgroundColor = "transparent";
+                buttons[i][j].style.zIndex = "1500";
+                buttons[i][j].setAttribute("type", "button");
+//                buttons[i][j].onclick = function (e) {
+                    
+                }
+//            }
+}
+
 window.onload = () => {
     'use strict';
 
@@ -84,6 +117,7 @@ window.onload = () => {
         navigator.serviceWorker
             .register('./sw.js');
     }
+    
     viewportHandler();
 
     function viewportHandler() {
@@ -93,27 +127,29 @@ window.onload = () => {
         // viewport's offset from the layout viewport origin.
         var offsetX = viewport.offsetLeft;
         var offsetY;
-        if (params.boardStyle == 'ToolbarBottom') {
+        if (params.boardStyle == strToolbarBottom) {
             offsetY = viewport.height -
                 layoutViewport.getBoundingClientRect().height +
                 viewport.offsetTop;
         } else
             offsetY = viewport.offsetTop - (viewport.scale - 1) * picomBar.getBoundingClientRect().height * 1.05; // use this for top
 
-        picomBar.style.transform = 'translate(' +
+ /*       picomBar.style.transform = 'translate(' +
             offsetX + 'px,' +
             offsetY + 'px) ' +
             'scale(' + 1 / viewport.scale + ')'
+   */
     }
     window.visualViewport.addEventListener('scroll', viewportHandler);
     window.visualViewport.addEventListener('resize', viewportHandler);
+    
     initSymbolsZip();
     splash = document.querySelector('splash');
     startSplash = document.querySelector('startSplash');
     settingsSplash = document.querySelector('settingsSplash');
     toggleSwitch = document.querySelector('toggleSwitch');
     guideSplash = document.querySelector('guideSplash');
-
+    
     toggleSwitch.onclick = function (e) {
         params.chkHideSettings = !params.chkHideSettings;
         if (params.chkHideSettings)
@@ -147,31 +183,43 @@ window.onload = () => {
     buttonPanel = document.querySelector('buttonPanel');
     buttonPanel.tabIndex = -1;
     buttonPanel.hidden = true;
-
-    //    setTimeout(function () {
-    //        settingsSplash.hidden = false;
-    //        startSplash.hidden = false;
-    //    }, 500);
+    makeButtons();
 
     function startCommunicator(showMenu) {
-        setUpGUI();
-        lastTab = 1;
-        startSplash.hidden = true;
-        splash.hidden = true;
-        guideSplash.hidden = true;
-        helpSplash.hidden = true;
-        toggleSwitch.hidden = true;
-        doSettingsSplash();
-        if (showMenu)
-            showSettings();
-        //        showTabs(1);
-        windowResized();
-    }
+     try {
+         if (startSplash.hidden) {
+             doneSettings(showMenu);
+             return;
+         }
+         if (doingSAPI) {
+             window.chrome.webview.addEventListener('message', arg => {
+                 SAPInames = arg.data.toString();
+                 setUpGUI();
+                 doneSettings(showMenu);
+             });
+             window.chrome.webview.postMessage("GetVoices");
+         }
+         else if (webViewIOS) { // send getvoices message and get them back in previous function
+             showTheMenu = showMenu;
+             var message = "GetVoices";
+             window.webkit.messageHandlers.PiCom.postMessage({
+                     "m": message
+                 });
+         }
+         else {
+             setUpGUI();
+             doneSettings(showMenu);
+         }
+     }
+     catch {}
+    // setUpGUI();
+     }
 
     settingsSplash.onmousedown = function (e) {
         e.stopPropagation();
         e.preventDefault();
         startCommunicator(true);
+        initButtons();
     }
 
     settingsSplash.onmouseup = function (e) {
@@ -183,6 +231,7 @@ window.onload = () => {
         e.stopPropagation();
         e.preventDefault();
         startCommunicator(true);
+        initButtons();
     };
     settingsSplash.ontouchend = function (e) {
         e.stopPropagation();
@@ -193,6 +242,7 @@ window.onload = () => {
         e.stopPropagation();
         e.preventDefault();
         startCommunicator(false);
+        initButtons();
     }
 
     startSplash.onmouseup = function (e) {
@@ -220,7 +270,7 @@ window.onload = () => {
     editButton.onclick = function (e) {
         lastTab = 2;
         showEdit();
-        settingsButton.style.zIndex = "1500";
+        settingsButton.style.zIndex = "1900";
         //        showTabs(2);
         e.stopPropagation();
         e.preventDefault();
@@ -248,6 +298,11 @@ window.onload = () => {
         startSplash.hidden = true;
         guideSplash.hidden = true;
         helpSplash.hidden = true;
+        splash.style.left = "-10000px";
+        settingsSplash.style.left = "-10000px";
+        startSplash.style.left = "-10000px";
+        guideSplash.style.left = "-10000px";
+        helpSplash.style.left = "-10000px";
     }
 
     document.documentElement.style.overflow = 'hidden'; // hide scroll barsfirefox, chrome
@@ -256,6 +311,42 @@ window.onload = () => {
     jeelizCanvas.hidden = false;
     setUpToolbar();
     //    initLanguages();
+}
+    
+function initButtons() {
+    for (var i = 0; i < 20; i++) {
+        for (var j = 0; j < 20; j++)
+           theBody.appendChild(buttons[i][j]);
+    }
+}
+
+function setGridButtons() {
+    for (var i = 0; i < 20; i++) {
+        for (var j = 0; j < 20; j++) {
+            buttons[i][j].style.left = (stepx*i).toString() + "px";
+            buttons[i][j].style.width = (stepx).toString() + "px";
+            buttons[i][j].style.top = (stepy*j + offsetForBoard).toString() + "px";
+            buttons[i][j].style.height = (stepy).toString() + "px";
+            buttons[i][j].disabled = true;
+            if (j >= rows && smallPortrait) {
+                buttons[i][j].style.left = "px";
+            }
+        }
+    }
+}
+
+function doneSettings(showMenu) {
+    lastTab = 1;
+    startSplash.hidden = true;
+    splash.hidden = true;
+    guideSplash.hidden = true;
+    helpSplash.hidden = true;
+    toggleSwitch.hidden = true;
+    doSettingsSplash();
+    if (showMenu)
+        showSettings();
+    //        showTabs(1);
+    windowResized();
 }
 
 async function initSymbolsZip() {
@@ -273,6 +364,7 @@ async function initSymbolsZip() {
 window.addEventListener("orientationchange", function () {
     windowResized();
 }, false);
+
 
 function windowResized() {
     //    var layoutViewport = document.getElementById('layoutViewport');
@@ -294,12 +386,11 @@ function windowResized() {
         splash.style.backgroundImage = "url('images/splash.jpg')";
     }
     refreshBoard++;
-
-    if (params.boardStyle == 'ToolbarTop')
+    if (params.boardStyle == strToolbarTop)
         offsetForBoard = viewport.height * .1;
     else
         offsetForBoard = 0;
-
+    setGridButtons();
     try {
         if (smallPortrait) {
             if (startSplash.hidden) {
@@ -349,10 +440,12 @@ function windowResized() {
             lblVocal.style.left = "3vw";
             lblLink.style.width = "31.4vw";
             lblLink.style.left = "3vw";
-            txtText.style.width = "50vw";
+            txtText.style.width = "40vw";
             txtText.style.left = "34.3vw";
             btnSearch.style.width = "9vw";
-            btnSearch.style.left = "86.5vw";
+            btnSearch.style.left = "76.5vw";
+            btnGlobalSearch.style.width = "9vw";
+            btnGlobalSearch.style.left = "86.8vw";
             txtVocal.style.width = "60vw";
             txtVocal.style.left = "34.3vw";
             txtLink.style.width = "61.5vw";
@@ -446,14 +539,16 @@ function windowResized() {
             lblVocal.style.left = "1vw";
             lblLink.style.width = "11vw";
             lblLink.style.left = "1vw";
-            txtText.style.width = "16.2vw";
-            txtText.style.left = "12vw";
-            btnSearch.style.width = "4.5vw";
-            btnSearch.style.left = "29.3vw";
-            txtVocal.style.width = "21.2vw";
-            txtLink.style.width = "21.2vw";
-            txtLink.style.left = "12vw";
-            txtVocal.style.left = "12vw";
+            txtText.style.width = "13vw";
+            txtText.style.left = "9vw";
+            btnSearch.style.width = "4.4vw";
+            btnSearch.style.left = "24.7vw";
+            btnGlobalSearch.style.width = "4.3vw";
+            btnGlobalSearch.style.left = "29.5vw";
+            txtVocal.style.width = "22.5vw";
+            txtLink.style.width = "24.7vw";
+            txtLink.style.left = "9vw";
+            txtVocal.style.left = "9vw";
             lblInstant.style.width = "29vw";
             lblInstant.style.left = "4vw";
             upArrow.style.width = "6vw";
@@ -906,7 +1001,7 @@ function drawButton(i, j, btnIndex) {
             fill(params.highlightColour);
             if (btnIndex < 0)
                 fill(params.backgroundColour)
-            rect(j * stepx, offsetForBoard + i * stepy, stepx, stepy);
+            rect(j * stepx+1, offsetForBoard + i * stepy+1, stepx-2, stepy-2); // change for adding buttons for eye gaze
         }
         if (btnIndex >= 0) {
             if (myBoard.buttons[btnIndex].hasOwnProperty('border_color')) {
@@ -1128,10 +1223,12 @@ function justSelected(x1, y1) {
                 doBackspace();
                 instant = true;
             }
+            spelling = false;
         } else if (myBoard.buttons[btnIndex].hasOwnProperty('action')) {
             var act = myBoard.buttons[btnIndex].action;
             if (act.includes(":home")) {
                 goHome();
+                spelling = false;
                 return;
                 instant = true;
             } else if (act.includes(":speak")) {
@@ -1140,16 +1237,35 @@ function justSelected(x1, y1) {
                 instant = true;
             } else if (act.includes(":clear")) {
                 doClear();
+                spelling = false;
                 instant = true;
             } else if (act.includes(":backspace")) {
                 doBackspace();
+                spelling = false;
                 instant = true;
+            }  else if (act.includes(":space")) {
+                say(btnsLabels[buttonCount-1].textContent);
+                spelling = false;
+                instant = true;
+            }else if (act.charAt(0) == "+") { // got character input
+                if (spelling) { // not the first spelling
+                    instant = true;
+                }
+                else { // allow PiCom to do first letter, but put space in first
+                    textToSpeak += " | ";
+                }
+                spelling = true;
             }
         }
+        else
+            spelling = false;
 
         if (myBoard.buttons[btnIndex].hasOwnProperty('vocalization')) {
             txt = myBoard.buttons[btnIndex].vocalization;
-            textToSpeak += " | " + txt;
+            if (txt == "")
+                txt = myBoard.buttons[btnIndex].label;
+            if (!instant)
+                textToSpeak += " | " + txt;
         } else if (myBoard.buttons[btnIndex].hasOwnProperty('sound_id')) {
             tts = false;
             snd = myBoard.buttons[btnIndex].sound_id;
@@ -1172,15 +1288,23 @@ function justSelected(x1, y1) {
                 return;
             }
             txt = myBoard.buttons[btnIndex].label;
-            if (!myBoard.buttons[btnIndex].hasOwnProperty('load_board'))
-                textToSpeak += " | " + txt;
+            if (!myBoard.buttons[btnIndex].hasOwnProperty('load_board')) {
+                if (spelling)
+                    textToSpeak += txt;
+                else {
+                    if (!instant) {
+                        textToSpeak += " | " + txt;
+                        textToSpeak = textToSpeak.replaceAll(' |  | ', ' | ');
+                    }
+                }
+            }
         }
 
         if (myBoard.buttons[btnIndex].hasOwnProperty('load_board')) {
             if (params.vocaliseLinkButtons) {
                 if (allowMute)
-                    speech.cancel();
-                speech.speak(txt);
+                    stopSpeech();
+                say(txt);
             }
             //document.body.style.transform = 'scale(' + (window.innerWidth / window.outerWidth) + ')';
             if (myBoard.buttons[btnIndex].load_board.hasOwnProperty('path')) {
@@ -1240,10 +1364,13 @@ function justSelected(x1, y1) {
                     }
                     buttonCount++;
                 }
+                else if (spelling) { // add letter to previous symbol
+                    btnsLabels[buttonCount-1].textContent += myBoard.buttons[btnIndex].label;
+                }
                 if (tts && params.vocaliseEachButton) { // vocaliseLinkButtons
                     if (allowMute)
-                        speech.cancel();
-                    speech.speak(txt);
+                        stopSpeech();
+                    say(txt);
                 }
                 if (homeBoardName != currentBoardName && params.autoReturnToHome)
                     if (boardDiskFormat == 2)

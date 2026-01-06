@@ -266,7 +266,7 @@ function setUpGUI2() {
 
     var openSaveShare = gui2.addFolder("Share");
 
-    if (!(isChromium && isMac)) {
+    if (webViewIOS) {
         var shb = openSaveShare.add(share, 'Share_Board').name("Share Communicator");
         shb.__li.style.textAlign = "center";
     }

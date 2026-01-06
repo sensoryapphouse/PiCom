@@ -19,7 +19,7 @@ var strRate = "Rate";
 var strVolume = "Volume";
 var strAdvanced = "Advanced";
 var strAutoHome = "Auto Home";
-var strLoadBoard = "Import Communicator From File";
+var strLoadBoard = "Open/Import Communicator From File";
 var strSaveBoard = "Export Communicator To File";
 var strEditButton = "Edit";
 var strText = "Text:";
@@ -444,10 +444,10 @@ function getLang(langTxt) {
 }
 
 const lang_map = {
-    "af": "af", // afrikaans
-    "am": "am", // Amharic
+   // "af": "af", // afrikaans
+   // "am": "am", // Amharic
     "ar": "ar", // Arabic
-    "ar-DZ": "ar",
+   /* "ar-DZ": "ar",
     "ar-BH": "ar",
     "ar-EG": "ar",
     "ar-IQ": "ar",
@@ -462,28 +462,28 @@ const lang_map = {
     "ar-SY": "ar",
     "ar-TN": "ar",
     "ar-AE": "ar",
-    "ar-YE": "ar",
-    "as": "as", // Assamese
-    "az": "az", // Azerbaijani
-    "az-AZ": "az",
+    "ar-YE": "ar",*/
+    //"as": "as", // Assamese
+    //"az": "az", // Azerbaijani
+    //"az-AZ": "az",
     "cy": "cy", // Welsh
-    "be": "be", // Belarusian
-    "bn": "bn", // Bengali
-    "bs": "bs", // bosnian
-    "bg": "bg", // bulgarian
+   // "be": "be", // Belarusian
+   //"bn": "bn", // Bengali
+    //"bs": "bs", // bosnian
+    //"bg": "bg", // bulgarian
     "ca": "ca", // Catalan
     "cs": "cs", // Czech	
     "da": "da", // Danish
     "de": "de", // German
-    "de-AT": "de",
+    /*"de-AT": "de",
     "de-DE": "de",
     "de-LI": "de",
     "de-LU": "de",
-    "de-CH": "de",
-    "dv": "dv", // Divehi
+    "de-CH": "de",*/
+    //"dv": "dv", // Divehi
     "el": "el", // Greek
     "en": "en", // English
-    "en-AU": "en",
+    /*"en-AU": "en",
     "en-BZ": "en",
     "en-CA": "en",
     "en-CB": "en",
@@ -495,9 +495,9 @@ const lang_map = {
     "en-PH": "en",
     "en-ZA": "en",
     "en-TT": "en",
-    "en-US": "en",
+    "en-US": "en",*/
     "es": "es", // Spanish
-    "es-AR": "es",
+    /*"es-AR": "es",
     "es-BO": "es",
     "es-CL": "es",
     "es-CO": "es",
@@ -515,36 +515,36 @@ const lang_map = {
     "es-PR": "es",
     "es-ES": "es",
     "es-UY": "es",
-    "es-VE": "es",
-    "et": "et", // Estonian
-    "eu": "eu", // basque
+    "es-VE": "es",*/
+    //"et": "et", // Estonian
+    //"eu": "eu", // basque
     "fa": "fa", // Farsi
     "fi": "fi", // Finniah
     "fr": "fr", // French
-    "fr-BE": "fr",
+    /*"fr-BE": "fr",
     "fr-CA": "fr",
     "fr-FR": "fr",
     "fr-LU": "fr",
-    "fr-CH": "fr",
-    "gn": "gn", // Guarani
+    "fr-CH": "fr",*/
+    //"gn": "gn", // Guarani
     "gu": "gu", // Gujarati
     "he": "he", // Hebrew
     "hi": "hi", // Hindi
     "hr": "hr", // Croatian
     "hu": "hu", // Hungarian
-    "hy": "hy", // Armenian
-    "is": "is", // Icelandic
-    "id": "id", // Indonesian
+    //"hy": "hy", // Armenian
+    //"is": "is", // Icelandic
+    //"id": "id", // Indonesian
     "it": "it", // Italian
-    "it-IT": "it",
-    "it-CH": "it",
+    /*"it-IT": "it",
+    "it-CH": "it",*/
     "ja": "ja", // Japanese
-    "kk": "kk", // Kazakh
-    "kn": "kn", // Kannada
-    "km": "km", // Central Kymer
+    //"kk": "kk", // Kazakh
+    //"kn": "kn", // Kannada
+    //"km": "km", // Central Kymer
     "ko": "ko", // Korean
-    "lo": "lo", // Lao
-    "lt": "lt", // Lithuanian
+   // "lo": "lo", // Lao
+    /*"lt": "lt", // Lithuanian
     "lv": "lv", // Latvian
     "mi": "mi", // Maori
     "mk": "mk", // FYRO Macedonian
@@ -552,58 +552,58 @@ const lang_map = {
     "mn": "mn", // Mongolian
     "mr": "mr", // Marathi
     "ms": "ms", // Malay
-    "ms-BN": "ms",
-    "ms-MY": "ms",
+   // "ms-BN": "ms",
+    //"ms-MY": "ms",
     "mt": "mt", // Maltese
     "my": "my", // Myamar/Burmese
-    "ne": "ne", // Nepali
+    "ne": "ne", // Nepali*/
     "nl": "nl", // Dutch
-    "nl-BE": "nl",
-    "nl-NL": "nl",
+    /*"nl-BE": "nl",
+    "nl-NL": "nl",*/
     "no": "no", // Norwegian
-    "no-NO": "no",
-    "or": "or", // Oriya
+    //"no-NO": "no",
+    //"or": "or", // Oriya
     "pa": "pa", // Punjabi
     "pl": "pl", // Polish
     "pt": "pt", // Portugese
-    "pt-BR": "pt",
-    "pt-PT": "pt",
+    /*"pt-BR": "pt",
+    "pt-PT": "pt",*/
     "ro": "ro", // Romanian
-    "ro-MO": "ro",
+    //"ro-MO": "ro",
     "ru": "ru", // Russian
-    "ru-MO": "ru",
-    "sd": "sd", // Sindhi
+    //"ru-MO": "ru",
+    /*"sd": "sd", // Sindhi
     "si": "si", // Sinhala
     "sk": "sk", // Slovak
     "sl": "sl", // Slovenian
     "so": "so", // Somali
     "sq": "sq", // Albanian
-    "sr": "sr", // Serbian
-    "sr-SP": "sr",
+    "sr": "sr", // Serbian*/
+    //"sr-SP": "sr",
     "sv": "sv", // Swedish
-    "sv-FI": "sv",
-    "sv-SE": "sv",
-    "sw": "sw", // Swahili
-    "ta": "ta", // Tamil
-    "te": "te", // Telugu
+    /*"sv-FI": "sv",
+    "sv-SE": "sv",*/
+    //"sw": "sw", // Swahili
+    //"ta": "ta", // Tamil
+    /*"te": "te", // Telugu
     "tg": "tg", // Tajik
     "th": "th", // Thai
-    "tk": "tk", // Turkman
+    "tk": "tk", // Turkman*/
     "tr": "tr", // Turkish
-    "ts": "ts", // Tsonga
-    "tt": "tt", // Tatar
+    //"ts": "ts", // Tsonga
+    //"tt": "tt", // Tatar
     "uk": "uk", // Ukranian
     "ur": "ur", // Urdu
-    "uz": "uz", // Uzbek
-    "uz-UZ": "uz",
+    //"uz": "uz", // Uzbek
+    //"uz-UZ": "uz",
     "vi": "vi", // Vietnamese
-    "xh": "xh", // Xhosa
-    "yi": "yi", // Yiddish
+    //"xh": "xh", // Xhosa
+    //"yi": "yi", // Yiddish
     "zh": "zh", // Mandarin
-    "zh-CN": "zh",
-    "zh-HK": "zh",
+    /*"zh-CN": "zh",
+    //"zh-HK": "zh",
     "zh-MO": "zh",
     "zh-SG": "zh",
-    "zh-TW": "zh",
-    "zu": "zu" // Zulu
+    "zh-TW": "zh",*/
+    //"zu": "zu" // Zulu
 }

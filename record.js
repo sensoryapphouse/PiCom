@@ -102,22 +102,28 @@ function createDownloadLink(blob) {
     reader.onload = function () {
         //        alert(reader.result);
         var s = "";
-        if (myBoard.sounds.length == 0) { // no sounds yet
-            s = "Picom1";
-        } else {
-            if (myBoard.buttons[btnIndex].hasOwnProperty('sound_id')) {
-                s = myBoard.buttons[btnIndex].sound_id;
-                var i = soundIndexFromId(s);
-                myBoard.sounds[i].data = reader.result;
-                return;
+        try { // check for undefined error
+            if (myBoard.sounds.length == 0) { // no sounds yet
+                s = "Picom1";
             } else {
-                s = myBoard.sounds[myBoard.sounds.length - 1].id;
-                if (s.includes("Picom")) {
-                    s = s.substr(5);
-                    s = "Picom" + (parseInt(s) + 1);
-                } else
-                    s = "Picom1";
+                if (myBoard.buttons[btnIndex].hasOwnProperty('sound_id')) {
+                    s = myBoard.buttons[btnIndex].sound_id;
+                    var i = soundIndexFromId(s);
+                    myBoard.sounds[i].data = reader.result;
+                    return;
+                } else {
+                    s = myBoard.sounds[myBoard.sounds.length - 1].id;
+                    if (s.includes("Picom")) {
+                        s = s.substr(5);
+                        s = "Picom" + (parseInt(s) + 1);
+                    } else
+                        s = "Picom1";
+                }
             }
+        }
+        catch {
+            myBoard.sounds = [""];
+            s = "Picom1";
         }
 
         myBoard.buttons[btnIndex].sound_id = s;

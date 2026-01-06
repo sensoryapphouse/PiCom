@@ -23,11 +23,14 @@
     <script src="libraries/notiflix-confirm-aio-3.2.5.min.js"></script>
     <script src="libraries/notiflix-loading-aio-3.2.5.min.js"></script>
     <script src="libraries/jeelizFaceExpressions.js"></script>
+    <script type="text/javascript" src="libraries/iconselect.js"></script>
+    <script type="text/javascript" src="libraries/iscroll.js"></script>
     <script src="gamepads.js"></script>
     <script src="face.js"></script>
     <script src="idb-keyval-iife.js"></script>
     <!--    <link rel="stylesheet" type="text/css" href="dat-gui-picom-theme.css">-->
     <link rel=" stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" type="text/css" href="iconselect.css">
     <!--    <link rel="stylesheet" type="text/css" href="dat-gui-font.css">-->
     <meta charset="utf-8">
 </head>
@@ -174,6 +177,8 @@
     <toolbar class="no-print" id="picomBar"></toolbar><!-- added by DMS for no print-->
     <canvas hidden=true id='jeelizFaceExpressionsCanvas'></canvas>
     <toggleSwitch class="btn" hidden></toggleSwitch>
+    <iconselect class="btn" id="my-icon-select"></iconselect>
+    <script src="sketch.js"></script>
     <script src="versions.js"></script>
     <script src="settings.js"> </script>
     <script src="settings2.js"> </script>
@@ -183,7 +188,6 @@
     <script src="panel.js"></script>
     <script src="languages.js"></script>
     <script src="record.js"></script>
-    <script src="sketch.js"></script>
     <input type="file" id="file-input" hidden accept=".obf,.obz">
     <input type="file" id="image-input" hidden accept="image/*">
     <input type="file" id="sound-input" hidden accept="audio/*">

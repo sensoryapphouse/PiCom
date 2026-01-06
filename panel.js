@@ -27,6 +27,7 @@ var lblLink;
 var lblInstant;
 var txtText;
 var btnSearch;
+var btnGlobalSearch;
 var txtVocal;
 var txtLink;
 var btnIndex;
@@ -50,6 +51,7 @@ function showTabs(i) {
             var text = JSON.stringify(manifestInfo, null, ' ')
             zip.file("manifest.json", text);
         }
+        _View.showBox(false);
     } catch (e) {}
     if (i >= 1) {
         if (startSplash.hidden)
@@ -142,6 +144,7 @@ function showTabs(i) {
             } catch (e) {}
             changedBoard = currentBoard.add(params2, 'theBoardName', theboards).name(strChangeBoard).onChange(function () {
                 loadZipBoard(params2.theBoardName);
+                currentBoardName = params2.theBoardName;
             });
             rowsGui = currentBoard.add(params2, 'rows', 1, 20, 1).name(strRows);
             columnsGui = currentBoard.add(params2, 'columns', 1, 20, 1).name(strColumns);
@@ -203,8 +206,18 @@ function setOptions(obj) {
     }
 }
 
+var globalSymbolSets = null;
 function updateEditPanel() {
     var m = manifestInfo;
+        fetch('https://globalsymbols.com/api/v1/symbolsets', {
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            globalSymbolSets = data;
+        });
     if (buttonPanel.hidden)
         return;
     //    removeOptions(txtLink);
@@ -326,6 +339,85 @@ function updateEditPanel() {
     }
 }
 
+var icons = [];
+function setupIconBox() {
+    for (let k = 1; k <= 36; k++) {
+        icons.push({
+            'iconFilePath': 'images/blank.png',
+            'iconValue': k.toString()
+        });
+    };
+    iconSelect.refresh(icons);
+}
+
+
+function picLoaded() {
+    refreshBoard++;
+}
+
+const getBlobFromUrl = (myImageUrl) => {
+    return new Promise((resolve, reject) => {
+        let request = new XMLHttpRequest();
+        request.open('GET', myImageUrl, true);
+        request.responseType = 'blob';
+        request.onload = () => {
+            resolve(request.response);
+        };
+        request.onerror = reject;
+        request.send();
+    })
+}
+
+const getDataFromBlob = (myBlob) => {
+    return new Promise((resolve, reject) => {
+        let reader = new FileReader();
+        reader.onload = () => {
+            resolve(reader.result);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(myBlob);
+    })
+}
+
+const convertUrlToImageData = async (myImageUrl) => {
+    try {
+        let myBlob = await getBlobFromUrl(myImageUrl);
+//        console.log(myBlob)
+        let myImageData = await getDataFromBlob(myBlob);
+//        console.log(myImageData)
+        return myImageData;
+    } catch (err) {
+        console.log(err);
+        return null;
+    }
+}
+
+async function newGlobalSymbolsImage(imageName) {
+//    imgs[imgs.length] = await loadImage(imageName);
+    var s = "";
+    try {
+        s = myBoard.images[myBoard.images.length - 1].id;
+    } catch (e) {}
+    if (s.includes("Picom")) {
+        s = s.substr(5);
+        s = "Picom" + (parseInt(s) + 1);
+    } else
+        s = "Picom1";
+    myBoard.buttons[btnIndex].image_id = s;
+    var dataURL = await convertUrlToImageData(imageName);
+    var tmp = {
+        "id": s,
+        "width": 250,
+        "height": 250,
+        "data": dataURL
+    }
+    myBoard.images[myBoard.images.length] = tmp;
+    imgs[imgs.length] = loadImage(imageName, picLoaded);
+    imgCurrentImg.src = dataURL;
+    
+    buttonsChanged = true;
+    currentGlobalSelected = -1;
+}
 
 function setUpPanel() {
     //buttonPanel.style.left = "130vw";
@@ -439,10 +531,10 @@ function setUpPanel() {
     txtText = document.createElement("INPUT");
     txtText.style.position = "absolute";
     txtText.style.height = "3vh";
-    txtText.style.width = "21.2vw";
+    txtText.style.width = "40vw";
     txtText.style.left = "12vw";
     if (smallPortrait) { // multiply left and width by 2.857
-        txtText.style.width = "60vw";
+        txtText.style.width = "40vw";
         txtText.style.left = "34.3vw";
     }
     txtText.style.top = "51vh";
@@ -462,34 +554,18 @@ function setUpPanel() {
     btnSearch.style.position = "absolute";
     btnSearch.style.height = "5vh";
     btnSearch.style.width = "5vw";
-    btnSearch.style.left = "29vw";
+    btnSearch.style.left = "25.5vw";
     if (smallPortrait) { // multiply left and width by 2.857
         btnSearch.style.width = "9vw";
-        btnSearch.style.left = "86.5vw";
-    }
-
-    function getGlobalSymbols(s) { // do global symbols search - not yet
-        //        return;
-        fetch('https://globalsymbols.com/api/v1/labels/search?query=' + s + '&language=eng&language_iso_format=639-3&limit=90', {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-            .then((response) => response.json())
-            .then((data) => {
-                // console.log(data); // JSON data parsed by `data.json()` call
-                //                btnSearch.style.backgroundImage = "url(" + data[1].picto.image_url + ")";
-                imgCurrentImg.style.backgroundImage = "url(" + data[0].picto.image_url + ")";
-            });
+        btnSearch.style.left = "77vw";
     }
     btnSearch.style.top = "50.5vh";
     btnSearch.style.border = "none";
     btnSearch.style.backgroundColor = "transparent";
     btnSearch.style.backgroundSize = "100% 100%";
-    btnSearch.style.backgroundImage = "url('images/LoadPic.png')";
+    btnSearch.style.backgroundImage = "url('images/search.png')";
     btnSearch.setAttribute("type", "button");
     btnSearch.onclick = function (e) {
-        //        getGlobalSymbols(txtText.value.toLowerCase()) // test loading from globalsymbols
         let tmpS = 'SAHsymbols/' + txtText.value.toLowerCase() + '.svg';
         let s1 = txtText.value.toLowerCase() + '.svg';
         let tf = symbolZip.file(s1);
@@ -547,6 +623,130 @@ function setUpPanel() {
             console.log("Not Found: ", s1);
         //        }, 100);
     }
+    
+    // Selected Global Symbols image
+    document.getElementById('my-icon-select').addEventListener('change', function(e) {
+       if (currentGlobalSelected != -1) { // got selection
+        console.log("Clicked: ", currentGlobalSelected);
+        let s = icons[currentGlobalSelected].iconFilePath;
+        currentGlobalSelected = -1;
+        newGlobalSymbolsImage(s);
+        buttonsChanged = true;
+       }
+    });
+    delete(iconSelect);
+    if (smallPortrait) {
+       iconSelect = new IconSelect("my-icon-select", {
+            'selectedBoxPadding': 1,
+            'iconsWidth': window.innerWidth /6,
+            'iconsHeight': window.innerWidth /6,
+            'boxIconSpace': 1,
+            'vectoralIconNumber': 4,
+            'horizontalIconNumber': 2
+        });        
+    }
+    else {
+       iconSelect = new IconSelect("my-icon-select", {
+            'selectedBoxPadding': 1,
+            'iconsWidth': window.innerHeight /6,
+            'iconsHeight': window.innerHeight /8,
+            'boxIconSpace': 1,
+            'vectoralIconNumber': 4,
+            'horizontalIconNumber': 2
+        });
+    }
+    setupIconBox();
+    
+    var icons = [];
+    var iconCount = 0;
+    var i;
+    function getGlobalSymbols(s) { // do global symbols search - not yet
+        //        return;
+       NotiflixLoadingTmr = setTimeout(function () {
+            Notiflix.Loading.arrows();
+            tmrNotiflix = setTimeout(function () {
+                clearTimeout(NotiflixLoadingTmr);
+                NotiflixLoadingTmr = null;
+                Notiflix.Loading.remove();
+            }, 5000);
+        }, 500);
+        fetch('https://globalsymbols.com/api/v1/labels/search?query=' + s + '&language=eng&language_iso_format=639-3&limit=36', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                clearTimeout(NotiflixLoadingTmr);
+                clearTimeout(tmrNotiflix);
+                NotiflixLoadingTmr = null;
+                Notiflix.Loading.remove();
+                let tmp = data.length;
+                function clearArray(array) {
+                    while (array.length > 0) {
+                        array.pop();
+                    }
+                }
+                function updateSymbols() {
+                    if (tmp > 0) {
+                        for (i = 0; i < tmp; i++) {
+                            let id = data[i].picto.symbolset_id;
+                            let key = "";
+                            try {
+                            if (id != null)
+                                key = "<span style='color: lightblue;'>" + globalSymbolSets.find(x => x.id === id).name + " <span style='font-weight:normal;font-style:italic;'>(" + data[i].picto.native_format + ")</span>";
+                            }
+                            catch (e) {}
+                            let s = data[i].picto.image_url;
+                            icons.push({
+                                'iconFilePath': s,
+                                'iconValue': i,
+                                'title': key
+                            });
+                        }
+                        iconSelect.refresh(icons);
+                    }
+                    else
+                        return;
+                }
+                if (tmp == 0)
+                    return;
+                clearArray(icons);
+                setTimeout(function () {
+                    iconSelect.show();
+                }, 120);
+                setTimeout(function () {
+                    updateSymbols();
+                }, 100);
+            })
+            .catch(error => {
+                clearTimeout(NotiflixLoadingTmr);
+                clearTimeout(tmrNotiflix);
+                NotiflixLoadingTmr = null;
+                Notiflix.Loading.remove();
+                alert("❌Error 404 ❌ Internet Error❌");
+            });
+    }
+    
+    btnGlobalSearch = document.createElement("INPUT");
+    btnGlobalSearch.style.position = "absolute";
+    btnGlobalSearch.style.height = "5vh";
+    btnGlobalSearch.style.width = "4.3vw";
+    btnGlobalSearch.style.left = "29.6vw";
+    if (smallPortrait) { // multiply left and width by 2.857
+        btnGlobalSearch.style.width = "9vw";
+        btnGlobalSearch.style.left = "86.8vw";
+    }
+    btnGlobalSearch.style.top = "50.5vh";
+    btnGlobalSearch.style.border = "none";
+    btnGlobalSearch.style.backgroundColor = "transparent";
+    btnGlobalSearch.style.backgroundSize = "100% 100%";
+    btnGlobalSearch.style.backgroundImage = "url('images/global.png')";
+    btnGlobalSearch.setAttribute("type", "button");
+    btnGlobalSearch.onclick = function (e) {
+        currentGlobalSelected = -1;
+        getGlobalSymbols(txtText.value.toLowerCase()) // test loading from globalsymbols
+    }
 
     txtVocal = document.createElement("INPUT");
     txtVocal.style.position = "absolute";
@@ -580,7 +780,7 @@ function setUpPanel() {
     }
     txtLink.style.top = "61vh";
     txtLink.style.fontFamily = "sans-serif";
-    txtLink.style.fontSize = "2.25vh";
+    txtLink.style.fontSize = "2.0vh";
     txtLink.style.color = 'black';
     txtLink.style.background = 'white';
     txtLink.style.border = "inset";
@@ -970,13 +1170,10 @@ function setUpPanel() {
                 "data": event.target.result
             }
             myBoard.images[myBoard.images.length] = tmp;
+            buttonsChanged = true;
         });
         reader.readAsDataURL(imgFile);
     });
-
-    function picLoaded() {
-        refreshBoard++;
-    }
 
     btnLoadSnd = document.createElement('INPUT');
     btnLoadSnd.style.position = "absolute";
@@ -1003,24 +1200,30 @@ function setUpPanel() {
         const reader = new FileReader();
         reader.addEventListener('load', (event) => {
             var s = "";
-            if (myBoard.sounds.length == 0) { // no sounds yet
-                s = "Picom1";
-            } else {
-                if (myBoard.buttons[btnIndex].hasOwnProperty('sound_id')) {
-                    s = myBoard.buttons[btnIndex].sound_id;
-                    var i = soundIndexFromId(s);
-                    myBoard.sounds[i].data = event.target.result;
-                    return;
+            try {
+                if (myBoard.sounds.length == 0) { // no sounds yet
+                    s = "Picom1";
                 } else {
-                    s = myBoard.sounds[myBoard.sounds.length - 1].id;
-                    if (s.includes("Picom")) {
-                        s = s.substr(5);
-                        s = "Picom" + (parseInt(s) + 1);
-                    } else
-                        s = "Picom1";
+                    if (myBoard.buttons[btnIndex].hasOwnProperty('sound_id')) {
+                        s = myBoard.buttons[btnIndex].sound_id;
+                        var i = soundIndexFromId(s);
+                        myBoard.sounds[i].data = event.target.result;
+                        return;
+                    } else {
+                        s = myBoard.sounds[myBoard.sounds.length - 1].id;
+                        if (s.includes("Picom")) {
+                            s = s.substr(5);
+                            s = "Picom" + (parseInt(s) + 1);
+                        } else
+                            s = "Picom1";
+                    }
                 }
             }
-
+            catch {
+                myBoard.sounds = [""];
+                s = "Picom1";
+            }
+            buttonsChanged = true;
             myBoard.buttons[btnIndex].sound_id = s;
             var tmp = {
                 "id": s,
@@ -1117,7 +1320,6 @@ function setUpPanel() {
 
     //    buttonPanel.appendChild(close);
     buttonPanel.appendChild(imgCurrentImg);
-
     buttonPanel.appendChild(titleLbl);
     buttonPanel.appendChild(lblText);
     buttonPanel.appendChild(lblVocal);
@@ -1140,6 +1342,7 @@ function setUpPanel() {
     buttonPanel.appendChild(btnFillCol);
     buttonPanel.appendChild(txtText);
     buttonPanel.appendChild(btnSearch);
+    buttonPanel.appendChild(btnGlobalSearch);
     buttonPanel.appendChild(txtVocal);
     buttonPanel.appendChild(txtLink);
     buttonPanel.appendChild(instantMsg);
@@ -1209,26 +1412,33 @@ function setUpPanel() {
                         "height": 250,
                         "data": event.target.result
                     }
+                    buttonsChanged = true;
                 }
                 if (filetype.toLowerCase().includes("audio")) {
 
                     var s = ""
-                    if (myBoard.sounds.length == 0) { // no sounds yet
-                        s = "Picom1";
-                    } else {
-                        if (myBoard.buttons[btnIndex].hasOwnProperty('sound_id')) {
-                            s = myBoard.buttons[btnIndex].sound_id;
-                            var i = soundIndexFromId(s);
-                            myBoard.sounds[i].data = event.target.result;
-                            return;
+                    try {
+                        if (myBoard.sounds.length == 0) { // no sounds yet
+                            s = "Picom1";
                         } else {
-                            s = myBoard.sounds[myBoard.sounds.length - 1].id;
-                            if (s.includes("Picom")) {
-                                s = s.substr(5);
-                                s = "Picom" + (parseInt(s) + 1);
-                            } else
-                                s = "Picom1";
+                            if (myBoard.buttons[btnIndex].hasOwnProperty('sound_id')) {
+                                s = myBoard.buttons[btnIndex].sound_id;
+                                var i = soundIndexFromId(s);
+                                myBoard.sounds[i].data = event.target.result;
+                                return;
+                            } else {
+                                s = myBoard.sounds[myBoard.sounds.length - 1].id;
+                                if (s.includes("Picom")) {
+                                    s = s.substr(5);
+                                    s = "Picom" + (parseInt(s) + 1);
+                                } else
+                                    s = "Picom1";
+                            }
                         }
+                    }
+                    catch {
+                        myBoard.sounds = [""];
+                        s = "Picom1";
                     }
                     myBoard.buttons[btnIndex].sound_id = s;
                     var tmp = {
@@ -1236,6 +1446,7 @@ function setUpPanel() {
                         "data": event.target.result
                     }
                     myBoard.sounds[myBoard.sounds.length] = tmp;
+                    buttonsChanged = true;
                 }
 
             });
@@ -1262,6 +1473,7 @@ function setUpPanel() {
                 "data": src
             }
             imgs[imgs.length] = loadImage(src, pictureLoaded);
+            buttonsChanged = true;
         }
         return false;
     }
@@ -1279,8 +1491,8 @@ function setUpPanel() {
     document.addEventListener('drop', onDrop, false);
 
     MarcTooltips.add([leftArrow, rightArrow, upArrow, downArrow], strArrowKeys, {
-        position: 'left',
-        align: 'left',
+        position: 'bottom',
+        align: 'right',
         className: 'green'
     });
     //        MarcTooltips.add(closeButton, 'Close editor', {
@@ -1406,6 +1618,12 @@ function setUpPanel() {
 
     MarcTooltips.add(btnSearch, strSearchForImage, {
         position: 'bottom',
+        align: 'right',
+        className: 'green'
+    });
+    
+    MarcTooltips.add(btnGlobalSearch, "Global Symbols", {
+        position: 'up',
         align: 'right',
         className: 'green'
     });
